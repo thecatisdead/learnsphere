@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../home/widgets/lesson_option_card.dart';
+import '../lessons/quizzes_screen.dart';
+import '../lessons/note_screen.dart';
+import '../lessons/video_screen.dart';
 
 class LessonScreen extends StatelessWidget {
   const LessonScreen({super.key});
@@ -12,24 +15,36 @@ class LessonScreen extends StatelessWidget {
 
         children: [
           LessonOptionCard(
-            icon: Icons.note,
+            icon: Icons.note_outlined,
+            color: Colors.blue,
             title: "Notes",
             onTap: () {
-              print("Notes tapped");
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const NoteScreen()),
+              );
             },
           ),
           LessonOptionCard(
             icon: Icons.video_library,
+            color: Colors.red,
             title: "Videos",
             onTap: () {
-              print("Videos tapped");
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const VideoScreen()),
+              );
             },
           ),
           LessonOptionCard(
             icon: Icons.quiz,
+            color: Colors.green,
             title: "Quizzes",
             onTap: () {
-              print("Quizzes tapped");
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const QuizzesScreen()),
+              );
             },
           ),
         ],
