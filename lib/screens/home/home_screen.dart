@@ -4,8 +4,8 @@ import 'widgets/continue_learning_card.dart';
 import 'widgets/greeting_header.dart';
 import 'widgets/ai_recommendation_card.dart';
 import 'widgets/trending_section.dart';
-
-
+import 'widgets/upload_card.dart';
+import 'package:file_picker/file_picker.dart';
 void main() {
   runApp(const MaterialApp(home: HomeScreen()));
 }
@@ -16,14 +16,28 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      
       body: ListView(
         padding: const EdgeInsets.all(16),
-        children: const [
+        children: [
           GreetingHeader(),
           SizedBox(height: 20),
 
           ContinueLearningCard(progress: 0.5),
+          UploadCard(
+            onTap: () async {
+              FilePickerResult? result = await FilePicker.pickFiles(
+                type: FileType.custom,
+                allowedExtensions: ['pdf'],
+              );
+
+              if (result != null) {
+                print(result.files.single.path);
+              } else {
+                print('No file selected');
+                // User canceled the picker
+              }
+            },
+          ),
           AIRecommendationCard(),
           TodaysGoalCard(),
           TrendingSection(),
