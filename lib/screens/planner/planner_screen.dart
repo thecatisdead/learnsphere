@@ -12,7 +12,7 @@ class PlannerScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Planner Screen'),
+      
       ),
       body: const Center(
         child: Text('Welcome to the Planner Screen!'),

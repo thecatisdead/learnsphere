@@ -6,16 +6,11 @@ class GreetingHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: const [
         Text(
           'Good Evening 👋',
           style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-        ),
-        SizedBox(height: 4),
-        Text(
-          'Ready to continue learning?',
-          style: TextStyle(color: Colors.grey),
         ),
         SizedBox(height: 4),
         Text(

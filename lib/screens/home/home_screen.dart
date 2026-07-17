@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:learnsphere/screens/home/widgets/todays_goal.dart';
 import 'widgets/continue_learning_card.dart';
 import 'widgets/greeting_header.dart';
 import 'widgets/ai_recommendation_card.dart';
 import 'widgets/trending_section.dart';
+
 
 void main() {
   runApp(const MaterialApp(home: HomeScreen()));
@@ -14,7 +16,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Home Screen')),
+      
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: const [
@@ -23,6 +25,7 @@ class HomeScreen extends StatelessWidget {
 
           ContinueLearningCard(progress: 0.5),
           AIRecommendationCard(),
+          TodaysGoalCard(),
           TrendingSection(),
         ],
       ),
