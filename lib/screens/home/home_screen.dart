@@ -19,6 +19,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  String? selectedFileName;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,6 +32,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
           ContinueLearningCard(progress: 0.5),
           UploadCard(
+            selectedFileName: selectedFileName,
+
             onTap: () async {
               FilePickerResult? result = await FilePicker.pickFiles(
                 type: FileType.custom,
@@ -37,7 +41,9 @@ class _HomeScreenState extends State<HomeScreen> {
               );
 
               if (result != null) {
-                print(result.files.single.path);
+                setState(() {
+                  selectedFileName = result.files.single.name;
+                });
               } else {
                 print('No file selected');
                 // User canceled the picker
