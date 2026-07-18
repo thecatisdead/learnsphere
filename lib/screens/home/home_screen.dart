@@ -3,7 +3,7 @@ import 'package:learnsphere/screens/home/widgets/todays_goal.dart';
 import 'widgets/continue_learning_card.dart';
 import 'widgets/greeting_header.dart';
 import 'widgets/ai_recommendation_card.dart';
-import 'widgets/trending_section.dart';
+import 'widgets/recent_material.dart';
 import 'widgets/upload_card.dart';
 import 'package:file_picker/file_picker.dart';
 
@@ -21,6 +21,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String? selectedFileName;
 
+  List<String> recentMaterials = [];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,8 +34,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
           ContinueLearningCard(progress: 0.5),
           UploadCard(
-            selectedFileName: selectedFileName,
-
             onTap: () async {
               FilePickerResult? result = await FilePicker.pickFiles(
                 type: FileType.custom,
@@ -42,7 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
               if (result != null) {
                 setState(() {
-                  selectedFileName = result.files.single.name;
+                  recentMaterials.add(result.files.single.name);
                 });
               } else {
                 print('No file selected');
@@ -50,9 +50,13 @@ class _HomeScreenState extends State<HomeScreen> {
               }
             },
           ),
+          RecentMaterialSection(recentMaterials: recentMaterials,
+            onMaterialTap: (material) {
+              print('Tapped on material: $material');
+            },
+          ),
           AIRecommendationCard(),
           TodaysGoalCard(),
-          TrendingSection(),
         ],
       ),
     );

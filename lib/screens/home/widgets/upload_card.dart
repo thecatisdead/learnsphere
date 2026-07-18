@@ -16,17 +16,14 @@ class UploadCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  if (selectedFileName != null) ...[
-                    SizedBox(height: 10),
-                    Text("Selected file: $selectedFileName"),
+                  SizedBox(height: 10),
 
-                    Icon(Icons.upload_file, size: 40),
-                    SizedBox(width: 10),
-                    Text(
-                      "Upload Your Study Materials",
-                      style: TextStyle(fontSize: 18),
-                    ),
-                  ],
+                  Icon(Icons.upload_file, size: 40),
+                  SizedBox(width: 10),
+                  Text(
+                    "Upload Your Study Materials",
+                    style: TextStyle(fontSize: 18),
+                  ),
                 ],
               ),
             ],
