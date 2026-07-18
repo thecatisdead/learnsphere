@@ -6,13 +6,19 @@ import 'widgets/ai_recommendation_card.dart';
 import 'widgets/trending_section.dart';
 import 'widgets/upload_card.dart';
 import 'package:file_picker/file_picker.dart';
+
 void main() {
   runApp(const MaterialApp(home: HomeScreen()));
 }
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
