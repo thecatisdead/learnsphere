@@ -6,6 +6,7 @@ import 'widgets/ai_recommendation_card.dart';
 import 'widgets/recent_material.dart';
 import 'widgets/upload_card.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:learnsphere/screens/study_material/study_material_screen.dart';
 
 void main() {
   runApp(const MaterialApp(home: HomeScreen()));
@@ -50,9 +51,15 @@ class _HomeScreenState extends State<HomeScreen> {
               }
             },
           ),
-          RecentMaterialSection(recentMaterials: recentMaterials,
+          RecentMaterialSection(
+            recentMaterials: recentMaterials,
             onMaterialTap: (material) {
-              print('Tapped on material: $material');
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => StudyMaterialScreen(fileName: material),
+                ),
+              );
             },
           ),
           AIRecommendationCard(),
