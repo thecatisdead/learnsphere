@@ -12,6 +12,8 @@ class QuizScreen extends StatefulWidget {
 
 class _QuizScreenState extends State<QuizScreen> {
   int currentQuestion = 0;
+
+
   String? selectedAnswer;
   final List<Question> questions = [
     const Question(
@@ -34,7 +36,9 @@ class _QuizScreenState extends State<QuizScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [Text(questions[currentQuestion].question), SizedBox(height: 10)],
+          children: [Text(questions[currentQuestion].question)
+          , SizedBox(height: 10),
+          ...questions[currentQuestion].options.map((option){return Text(option);})],
         ),
       ),
     );
