@@ -13,7 +13,6 @@ class QuizScreen extends StatefulWidget {
 class _QuizScreenState extends State<QuizScreen> {
   int currentQuestion = 0;
 
-
   String? selectedAnswer;
   final List<Question> questions = [
     const Question(
@@ -23,6 +22,11 @@ class _QuizScreenState extends State<QuizScreen> {
     ),
     const Question(
       question: "What is 2 + 2?",
+      options: ["3", "4", "5", "6"],
+      correctAnswer: "4",
+    ),
+    const Question(
+      question: "What is 2 + 3?",
       options: ["3", "4", "5", "6"],
       correctAnswer: "4",
     ),
@@ -36,9 +40,33 @@ class _QuizScreenState extends State<QuizScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [Text(questions[currentQuestion].question)
-          , SizedBox(height: 10),
-          ...questions[currentQuestion].options.map((option){return Text(option);})],
+          children: [
+            Text(questions[currentQuestion].question),
+            SizedBox(height: 10),
+            ...questions[currentQuestion].options.map((option) {
+              return RadioListTile<String>(
+                title: Text(option),
+                value: option,
+                groupValue: selectedAnswer,
+                onChanged: (value) {
+                  setState(() {
+                    selectedAnswer = value;
+                  });
+                },
+              );
+            }),
+            SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () {
+                if (currentQuestion < questions.length - 1) {
+                  setState(() {
+                    currentQuestion++;
+                  });
+                }
+              },
+              child: const Text('Next'),
+            ),
+          ],
         ),
       ),
     );
