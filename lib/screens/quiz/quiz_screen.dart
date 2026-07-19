@@ -13,6 +13,18 @@ class QuizScreen extends StatefulWidget {
 class _QuizScreenState extends State<QuizScreen> {
   int currentQuestion = 0;
   String? selectedAnswer;
+  final List<Question> questions = [
+    const Question(
+      question: "What is the capital of France?",
+      options: ["Berlin", "Madrid", "Paris", "Rome"],
+      correctAnswer: "Paris",
+    ),
+    const Question(
+      question: "What is 2 + 2?",
+      options: ["3", "4", "5", "6"],
+      correctAnswer: "4",
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -22,60 +34,7 @@ class _QuizScreenState extends State<QuizScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-         
-
-            const SizedBox(height: 24),
-
-            const Text("Question 1 of 5", style: TextStyle(fontSize: 16)),
-
-            const SizedBox(height: 20),
-
-            const Text(
-              "Which language is used to build Flutter apps?",
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-
-            const SizedBox(height: 20),
-
-            RadioListTile(
-              value: "Java",
-              groupValue: null,
-              onChanged: (_) {},
-              title: const Text("Java"),
-            ),
-
-            RadioListTile(
-              value: "Dart",
-              groupValue: null,
-              onChanged: (_) {},
-              title: const Text("Dart"),
-            ),
-
-            RadioListTile(
-              value: "Python",
-              groupValue: null,
-              onChanged: (_) {},
-              title: const Text("Python"),
-            ),
-
-            RadioListTile(
-              value: "C#",
-              groupValue: null,
-              onChanged: (_) {},
-              title: const Text("C#"),
-            ),
-
-            const Spacer(),
-
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {},
-                child: const Text("Next"),
-              ),
-            ),
-          ],
+          children: [Text(questions[currentQuestion].question), SizedBox(height: 10)],
         ),
       ),
     );
