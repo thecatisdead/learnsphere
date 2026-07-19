@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '/../screens/quiz/quiz_screen.dart';
 
 class StudyMaterialScreen extends StatelessWidget {
   final String fileName;
@@ -40,7 +41,14 @@ class StudyMaterialScreen extends StatelessWidget {
             const SizedBox(height: 12),
 
             ElevatedButton.icon(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => QuizScreen(fileName: fileName),
+                  ),
+                );
+              },
               icon: const Icon(Icons.quiz),
               label: const Text("Generate Quiz"),
             ),
