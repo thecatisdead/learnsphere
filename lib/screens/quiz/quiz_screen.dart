@@ -12,13 +12,14 @@ class QuizScreen extends StatefulWidget {
 
 class _QuizScreenState extends State<QuizScreen> {
   int currentQuestion = 0;
+  int score = 0;
 
   String? selectedAnswer;
   final List<Question> questions = [
     const Question(
       question: "What is the capital of France?",
       options: ["Berlin", "Madrid", "Paris", "Rome"],
-      correctAnswer: "Paris",
+      correctAnswer: "Madrid",
     ),
     const Question(
       question: "What is 2 + 2?",
@@ -58,11 +59,27 @@ class _QuizScreenState extends State<QuizScreen> {
             SizedBox(height: 10),
             ElevatedButton(
               onPressed: () {
+                if (selectedAnswer ==
+                    questions[currentQuestion].correctAnswer) {
+                  score++;
+                }
+
                 if (currentQuestion < questions.length - 1) {
                   setState(() {
                     currentQuestion++;
+
                     selectedAnswer = null;
                   });
+                } else {
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: const Text("Quiz Finished"),
+                        content: Text("Your score is $score"),
+                      );
+                    },
+                  );
                 }
               },
               child: const Text('Next'),
