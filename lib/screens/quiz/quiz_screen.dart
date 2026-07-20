@@ -22,7 +22,7 @@ class _QuizScreenState extends State<QuizScreen> {
     ),
     const Question(
       question: "What is 2 + 2?",
-      options: ["3", "4", "5", "6"],
+      options: ["3", "Madrid", "5", "6"],
       correctAnswer: "4",
     ),
     const Question(
@@ -61,6 +61,7 @@ class _QuizScreenState extends State<QuizScreen> {
                 if (currentQuestion < questions.length - 1) {
                   setState(() {
                     currentQuestion++;
+                    selectedAnswer = null;
                   });
                 }
               },
