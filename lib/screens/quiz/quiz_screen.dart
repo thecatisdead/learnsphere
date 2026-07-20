@@ -77,6 +77,15 @@ class _QuizScreenState extends State<QuizScreen> {
                       return AlertDialog(
                         title: const Text("Quiz Finished"),
                         content: Text("Your score is $score"),
+
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            child: const Text("OK"),
+                          ),
+                        ],
                       );
                     },
                   );
