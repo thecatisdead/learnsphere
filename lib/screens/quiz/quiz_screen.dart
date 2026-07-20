@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '/../models/question.dart';
+import '../result/result_screen.dart';
 
 class QuizScreen extends StatefulWidget {
   final String fileName;
@@ -71,23 +72,16 @@ class _QuizScreenState extends State<QuizScreen> {
                     selectedAnswer = null;
                   });
                 } else {
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return AlertDialog(
-                        title: const Text("Quiz Finished"),
-                        content: Text("Your score is $score"),
-
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: const Text("OK"),
-                          ),
-                        ],
-                      );
-                    },
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return ResultScreen(
+                          score: score,
+                          totalQuestions: questions.length,
+                        );
+                      },
+                    ),
                   );
                 }
               },
