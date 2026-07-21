@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../quiz/quiz_screen.dart';
 import '/../models/question.dart';
+import '/screens/home/home_screen.dart';
 
 class ResultScreen extends StatelessWidget {
   final int score;
@@ -35,27 +36,73 @@ class ResultScreen extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text("Question ${i + 1}"),
+                    Text(
+                      "Question ${i + 1}",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     Text(questions[i].question),
+
+                    SizedBox(height: 8),
                     Text("Your Answer"),
-                    Text(userAnswers[i]),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          userAnswers[i],
+                          style: TextStyle(
+                            color:
+                                userAnswers[i] == questions[i].correctAnswer
+                                    ? Colors.green
+                                    : Colors.red,
+                          ),
+                        ),
+
+                        Icon(
+                          userAnswers[i] == questions[i].correctAnswer
+                              ? Icons.check_circle
+                              : Icons.cancel,
+                        ),
+                      ],
+                    ),
+
+                    SizedBox(height: 8),
+
                     Text("Correct Answer"),
                     Text(questions[i].correctAnswer),
                   ],
                 ),
               ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) {
-                      return QuizScreen(fileName: fileName);
-                    },
-                  ),
-                );
-              },
-              child: const Text("Try Again"),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) {
+                          return QuizScreen(fileName: fileName);
+                        },
+                      ),
+                    );
+                  },
+                  child: const Text("Try Again"),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) {
+                          return const HomeScreen();
+                        },
+                      ),
+                      (route) => false,
+                    );
+                  },
+                  child: const Text("Return Home"),
+                ),
+              ],
             ),
           ],
         ),
