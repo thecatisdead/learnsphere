@@ -15,6 +15,8 @@ class _QuizScreenState extends State<QuizScreen> {
   int currentQuestion = 0;
   int score = 0;
 
+  List<String> userAnswers = [];
+
   String? selectedAnswer;
   final List<Question> questions = [
     const Question(
@@ -60,6 +62,8 @@ class _QuizScreenState extends State<QuizScreen> {
             SizedBox(height: 10),
             ElevatedButton(
               onPressed: () {
+                userAnswers.add(selectedAnswer!);
+
                 if (selectedAnswer ==
                     questions[currentQuestion].correctAnswer) {
                   score++;
