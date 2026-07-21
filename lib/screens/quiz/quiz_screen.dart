@@ -84,6 +84,8 @@ class _QuizScreenState extends State<QuizScreen> {
                           score: score,
                           totalQuestions: questions.length,
                           fileName: widget.fileName,
+                          questions: questions,
+                          userAnswers: userAnswers,
                         );
                       },
                     ),
