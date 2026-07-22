@@ -53,7 +53,7 @@ class ResultScreen extends StatelessWidget {
                 ),
 
                 for (int i = 0; i < questions.length; i++)
-                  Card(
+                  Card( 
                     margin: const EdgeInsets.symmetric(vertical: 8),
                     elevation: 4,
                     shape: RoundedRectangleBorder(
@@ -69,26 +69,36 @@ class ResultScreen extends StatelessWidget {
                         Text(questions[i].question),
 
                         SizedBox(height: 8),
-                        Text("Your Answer"),
+                        ...questions[i].options.map((option) {
+                          return Card( child: ListTile(title: Text(option)));
+
+                        
+                        }),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
-                              userAnswers[i],
-                              style: TextStyle(
-                                color:
-                                    userAnswers[i] == questions[i].correctAnswer
-                                        ? Colors.green
-                                        : Colors.red,
-                              ),
-                            ),
-
                             Icon(
                               userAnswers[i] == questions[i].correctAnswer
                                   ? Icons.check_circle
                                   : Icons.cancel,
+
+                              color:
+                                  userAnswers[i] == questions[i].correctAnswer
+                                      ? Colors.green
+                                      : Colors.red,
                             ),
+
+                            Text("Your Answer"),
                           ],
+                        ),
+                        Text(
+                          userAnswers[i],
+                          style: TextStyle(
+                            color:
+                                userAnswers[i] == questions[i].correctAnswer
+                                    ? Colors.green
+                                    : Colors.red,
+                          ),
                         ),
 
                         SizedBox(height: 8),
