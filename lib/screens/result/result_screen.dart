@@ -99,7 +99,7 @@ class ResultScreen extends StatelessWidget {
                         Text(
                           userAnswers[i] == questions[i].correctAnswer
                               ? "Correct!"
-                              : "Incorrect! The correct answer is:",
+                              : "Incorrect!",
 
                           style: TextStyle(
                             color:
@@ -108,7 +108,10 @@ class ResultScreen extends StatelessWidget {
                                     : Colors.red,
                           ),
                         ),
-                        Text(questions[i].correctAnswer),
+                        if (userAnswers[i] != questions[i].correctAnswer)
+                          Text(
+                            " The correct answer is ${questions[i].correctAnswer}",
+                          ),
 
                         SizedBox(height: 8),
                       ],
