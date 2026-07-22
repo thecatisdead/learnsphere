@@ -53,7 +53,7 @@ class ResultScreen extends StatelessWidget {
                 ),
 
                 for (int i = 0; i < questions.length; i++)
-                  Card( 
+                  Card(
                     margin: const EdgeInsets.symmetric(vertical: 8),
                     elevation: 4,
                     shape: RoundedRectangleBorder(
@@ -70,9 +70,16 @@ class ResultScreen extends StatelessWidget {
 
                         SizedBox(height: 8),
                         ...questions[i].options.map((option) {
-                          return Card( child: ListTile(title: Text(option)));
+                          return Card(
+                            color:
+                                option == questions[i].correctAnswer
+                                    ? const Color.fromARGB(255, 131, 255, 135)
+                                    : option == userAnswers[i]
+                                    ? const Color.fromARGB(255, 241, 21, 5)
+                                    : Colors.white,
 
-                        
+                            child: ListTile(title: Text(option)),
+                          );
                         }),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -87,12 +94,13 @@ class ResultScreen extends StatelessWidget {
                                       ? Colors.green
                                       : Colors.red,
                             ),
-
-                            Text("Your Answer"),
                           ],
                         ),
                         Text(
-                          userAnswers[i],
+                          userAnswers[i] == questions[i].correctAnswer
+                              ? "Correct!"
+                              : "Incorrect! The correct answer is:",
+
                           style: TextStyle(
                             color:
                                 userAnswers[i] == questions[i].correctAnswer
@@ -100,11 +108,9 @@ class ResultScreen extends StatelessWidget {
                                     : Colors.red,
                           ),
                         ),
+                        Text(questions[i].correctAnswer),
 
                         SizedBox(height: 8),
-
-                        Text("Correct Answer"),
-                        Text(questions[i].correctAnswer),
                       ],
                     ),
                   ),
