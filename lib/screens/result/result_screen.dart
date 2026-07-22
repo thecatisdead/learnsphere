@@ -24,7 +24,6 @@ class ResultScreen extends StatelessWidget {
     final percentage = (score / totalQuestions) * 100;
 
     return Scaffold(
-      
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -33,9 +32,11 @@ class ResultScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
 
               children: [
+                SizedBox(height: 24),
+
                 Text(
                   "Your Score",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
                 ),
 
                 if (percentage >= 90)
@@ -59,6 +60,10 @@ class ResultScreen extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
+                    child: Padding (
+                           padding: const EdgeInsets.all(16.0), // Adds space inside the card
+
+                    
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -66,7 +71,7 @@ class ResultScreen extends StatelessWidget {
                           "Question ${i + 1}",
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
-                        Text(questions[i].question),
+                        Text(questions[i].question, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),),
 
                         SizedBox(height: 8),
                         ...questions[i].options.map((option) {
@@ -99,6 +104,7 @@ class ResultScreen extends StatelessWidget {
                             ),
                           );
                         }),
+                        SizedBox(height: 16),
 
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -113,6 +119,8 @@ class ResultScreen extends StatelessWidget {
                                       ? Colors.green
                                       : Colors.red,
                             ),
+
+
                             Text(
                               userAnswers[i] == questions[i].correctAnswer
                                   ? "Correct!"
@@ -128,6 +136,7 @@ class ResultScreen extends StatelessWidget {
                             if (userAnswers[i] != questions[i].correctAnswer)
                               Text(
                                 " The correct answer is ${questions[i].correctAnswer}",
+                                
                               ),
                           ],
                         ),
@@ -136,8 +145,10 @@ class ResultScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-
+                  ),
                 Row(
+                  
+                  
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     ElevatedButton(
@@ -151,7 +162,7 @@ class ResultScreen extends StatelessWidget {
                           ),
                         );
                       },
-                      child: const Text("Try Again"),
+                      child: const Text("Try Again", style: TextStyle(),),
                     ),
                     ElevatedButton(
                       onPressed: () {
