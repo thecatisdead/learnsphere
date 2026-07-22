@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../quiz/quiz_screen.dart';
 import '/../models/question.dart';
 import '/screens/home/home_screen.dart';
+import '/main.dart';
+import '/app/main_navigation.dart';
 
 class ResultScreen extends StatelessWidget {
   final int score;
@@ -81,6 +83,7 @@ class ResultScreen extends StatelessWidget {
                             child: ListTile(title: Text(option)),
                           );
                         }),
+
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -94,29 +97,30 @@ class ResultScreen extends StatelessWidget {
                                       ? Colors.green
                                       : Colors.red,
                             ),
+                            Text(
+                              userAnswers[i] == questions[i].correctAnswer
+                                  ? "Correct!"
+                                  : "Incorrect!",
+
+                              style: TextStyle(
+                                color:
+                                    userAnswers[i] == questions[i].correctAnswer
+                                        ? Colors.green
+                                        : Colors.red,
+                              ),
+                            ),
+                            if (userAnswers[i] != questions[i].correctAnswer)
+                              Text(
+                                " The correct answer is ${questions[i].correctAnswer}",
+                              ),
                           ],
                         ),
-                        Text(
-                          userAnswers[i] == questions[i].correctAnswer
-                              ? "Correct!"
-                              : "Incorrect!",
-
-                          style: TextStyle(
-                            color:
-                                userAnswers[i] == questions[i].correctAnswer
-                                    ? Colors.green
-                                    : Colors.red,
-                          ),
-                        ),
-                        if (userAnswers[i] != questions[i].correctAnswer)
-                          Text(
-                            " The correct answer is ${questions[i].correctAnswer}",
-                          ),
 
                         SizedBox(height: 8),
                       ],
                     ),
                   ),
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -139,7 +143,7 @@ class ResultScreen extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                             builder: (context) {
-                              return const HomeScreen();
+                              return const MainNavigation();
                             },
                           ),
                           (route) => false,
