@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../quiz/quiz_screen.dart';
 import '/../models/question.dart';
-import '/screens/home/home_screen.dart';
-import '/main.dart';
 import '/app/main_navigation.dart';
 
 class ResultScreen extends StatelessWidget {
@@ -75,10 +73,25 @@ class ResultScreen extends StatelessWidget {
                           return Card(
                             color:
                                 option == questions[i].correctAnswer
-                                    ? const Color.fromARGB(255, 131, 255, 135)
+                                    ? const Color.fromRGBO(240, 253, 244, 1.0)
                                     : option == userAnswers[i]
-                                    ? const Color.fromARGB(255, 241, 21, 5)
+                                    ? const Color.fromRGBO(254, 242, 242, 1.0)
                                     : Colors.white,
+
+                            shape: RoundedRectangleBorder(
+                              side: BorderSide(
+                                color:
+                                    option == questions[i].correctAnswer
+                                        ? const Color.fromRGBO(34, 197, 94, 1.0)
+                                        : option == userAnswers[i]
+                                        ? const Color.fromRGBO(239, 68, 68, 1.0)
+                                        : Color.fromRGBO(229, 231, 235, 1.0),
+                                width: 1.0,
+                              ),
+                                borderRadius: BorderRadius.circular(12.0),
+
+                            
+                            ),
 
                             child: ListTile(title: Text(option)),
                           );
