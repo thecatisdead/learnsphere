@@ -24,7 +24,7 @@ class ResultScreen extends StatelessWidget {
     final percentage = (score / totalQuestions) * 100;
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Result Screen")),
+      
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -39,13 +39,13 @@ class ResultScreen extends StatelessWidget {
                 ),
 
                 if (percentage >= 90)
-                  Text("Excellent!")
+                  Text("🏆Excellent!")
                 else if (percentage >= 80)
-                  Text("Great Job!")
+                  Text("👍Great Job!")
                 else if (percentage >= 70)
-                  Text("Good Job!")
+                  Text("🙂Good Job!")
                 else
-                  Text("Keep Practicing!"),
+                  Text("🔄Keep Practicing!"),
 
                 Text(
                   "$score / $totalQuestions",
@@ -88,12 +88,15 @@ class ResultScreen extends StatelessWidget {
                                         : Color.fromRGBO(229, 231, 235, 1.0),
                                 width: 1.0,
                               ),
-                                borderRadius: BorderRadius.circular(12.0),
-
-                            
+                              borderRadius: BorderRadius.circular(12.0),
                             ),
 
-                            child: ListTile(title: Text(option)),
+                            child: ListTile(
+                              title: Text(
+                                option,
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ),
                           );
                         }),
 

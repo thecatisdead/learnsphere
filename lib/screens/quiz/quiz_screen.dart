@@ -76,7 +76,7 @@ class _QuizScreenState extends State<QuizScreen> {
                     selectedAnswer = null;
                   });
                 } else {
-                  Navigator.push(
+                  Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
                       builder: (context) {
