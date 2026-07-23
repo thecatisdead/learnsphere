@@ -52,103 +52,130 @@ class ResultScreen extends StatelessWidget {
                   "$score / $totalQuestions",
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
                 ),
-
+                Text(
+                  "${percentage.toStringAsFixed(0)}%",
+                  style: TextStyle(fontSize: 18),
+                ),
                 for (int i = 0; i < questions.length; i++)
                   Card(
                     margin: const EdgeInsets.symmetric(vertical: 8),
-                    elevation: 4,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Padding (
-                           padding: const EdgeInsets.all(16.0), // Adds space inside the card
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
 
-                    
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          "Question ${i + 1}",
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        Text(questions[i].question, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),),
-
-                        SizedBox(height: 8),
-                        ...questions[i].options.map((option) {
-                          return Card(
-                            color:
-                                option == questions[i].correctAnswer
-                                    ? const Color.fromRGBO(240, 253, 244, 1.0)
-                                    : option == userAnswers[i]
-                                    ? const Color.fromRGBO(254, 242, 242, 1.0)
-                                    : Colors.white,
-
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                color:
-                                    option == questions[i].correctAnswer
-                                        ? const Color.fromRGBO(34, 197, 94, 1.0)
-                                        : option == userAnswers[i]
-                                        ? const Color.fromRGBO(239, 68, 68, 1.0)
-                                        : Color.fromRGBO(229, 231, 235, 1.0),
-                                width: 1.0,
-                              ),
-                              borderRadius: BorderRadius.circular(12.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Question ${i + 1}",
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            questions[i].question,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
                             ),
+                          ),
 
-                            child: ListTile(
-                              title: Text(
-                                option,
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          );
-                        }),
-                        SizedBox(height: 16),
-
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              userAnswers[i] == questions[i].correctAnswer
-                                  ? Icons.check_circle
-                                  : Icons.cancel,
-
+                          SizedBox(height: 8),
+                          ...questions[i].options.map((option) {
+                            return Card(
                               color:
-                                  userAnswers[i] == questions[i].correctAnswer
-                                      ? Colors.green
-                                      : Colors.red,
-                            ),
+                                  option == questions[i].correctAnswer
+                                      ? const Color.fromRGBO(240, 253, 244, 1.0)
+                                      : option == userAnswers[i]
+                                      ? const Color.fromRGBO(254, 242, 242, 1.0)
+                                      : Colors.white,
 
+                              shape: RoundedRectangleBorder(
+                                side: BorderSide(
+                                  color:
+                                      option == questions[i].correctAnswer
+                                          ? const Color.fromRGBO(
+                                            34,
+                                            197,
+                                            94,
+                                            1.0,
+                                          )
+                                          : option == userAnswers[i]
+                                          ? const Color.fromRGBO(
+                                            239,
+                                            68,
+                                            68,
+                                            1.0,
+                                          )
+                                          : Color.fromRGBO(229, 231, 235, 1.0),
+                                  width: 1.0,
+                                ),
+                                borderRadius: BorderRadius.circular(12.0),
+                              ),
 
-                            Text(
-                              userAnswers[i] == questions[i].correctAnswer
-                                  ? "Correct!"
-                                  : "Incorrect!",
+                              child: ListTile(
+                                title: Text(
+                                  option,
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            );
+                          }),
+                          SizedBox(height: 16),
 
-                              style: TextStyle(
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                userAnswers[i] == questions[i].correctAnswer
+                                    ? Icons.check_circle
+                                    : Icons.cancel,
+
                                 color:
                                     userAnswers[i] == questions[i].correctAnswer
                                         ? Colors.green
                                         : Colors.red,
                               ),
-                            ),
-                            if (userAnswers[i] != questions[i].correctAnswer)
-                              Text(
-                                " The correct answer is ${questions[i].correctAnswer}",
-                                
-                              ),
-                          ],
-                        ),
 
-                        SizedBox(height: 8),
-                      ],
+                              Text(
+                                userAnswers[i] == questions[i].correctAnswer
+                                    ? "Correct!"
+                                    : "Incorrect!",
+
+                                style: TextStyle(
+                                  color:
+                                      userAnswers[i] ==
+                                              questions[i].correctAnswer
+                                          ? Colors.green
+                                          : Colors.red,
+                                ),
+                              ),
+                              if (userAnswers[i] != questions[i].correctAnswer)
+                                RichText(
+                                  text: TextSpan(
+                                    style: TextStyle(color: Colors.black),
+                                    children: [
+                                      const TextSpan(
+                                        text: " The correct answer is ",
+                                      ),
+                                      TextSpan(
+                                        text: questions[i].correctAnswer,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          ),
+
+                          SizedBox(height: 8),
+                        ],
+                      ),
                     ),
                   ),
-                  ),
                 Row(
-                  
-                  
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     ElevatedButton(
@@ -162,7 +189,7 @@ class ResultScreen extends StatelessWidget {
                           ),
                         );
                       },
-                      child: const Text("Try Again", style: TextStyle(),),
+                      child: const Text("Try Again", style: TextStyle()),
                     ),
                     ElevatedButton(
                       onPressed: () {
