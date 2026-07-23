@@ -40,16 +40,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               );
 
               if (result != null) {
+                print("1. PDF selected");
+
                 ref
                     .read(studySessionProvider.notifier)
-                    .setSession(StudySession(fileName: "...", filePath: "..."));
+                    .setSession(
+                      StudySession(
+                        fileName: result.files.single.name,
+                        filePath: result.files.single.path!,
+                      ),
+                    );
+
+                print("2. Session saved");
+
+                final session = ref.read(studySessionProvider);
+
+                print("3. Session is: $session");
+                print("4. File name: ${session?.fileName}");
+                print("5. File path: ${session?.filePath}");
 
                 setState(() {
                   recentMaterials.add(result.files.single.name);
                 });
-
-                print(ref.read(studySessionProvider)?.fileName);
-                print(ref.read(studySessionProvider)?.filePath);
               } else {
                 print('No file selected');
 
