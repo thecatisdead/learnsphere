@@ -22,6 +22,7 @@ class ResultScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final percentage = (score / totalQuestions) * 100;
+    final progress = score / totalQuestions;
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -34,39 +35,82 @@ class ResultScreen extends StatelessWidget {
               children: [
                 SizedBox(height: 36),
 
-                Text(
-                  "Your Score",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                ),
+                Card(
+                  elevation: 1,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      mainAxisSize:
+                          MainAxisSize
+                              .min, // Prevents the column from taking full screen height
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Your Score",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                          ),
+                        ),
 
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "$score/$totalQuestions • ",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 30,
-                      ),
-                    ),
-                    Text(
-                      "${percentage.toStringAsFixed(0)}%",
-                      style: TextStyle(
-                        fontSize: 30,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "$score/$totalQuestions ",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 30,
+                              ),
+                            ),
 
-                if (percentage >= 90)
-                  Text("🏆Excellent!", style: TextStyle(fontSize: 22))
-                else if (percentage >= 80)
-                  Text("👍Great Job!", style: TextStyle(fontSize: 22))
-                else if (percentage >= 70)
-                  Text("🙂Good Job!", style: TextStyle(fontSize: 22))
-                else
-                  Text("🔄Keep Practicing!", style: TextStyle(fontSize: 22)),
+                            Text(
+                              "${percentage.toStringAsFixed(0)}%",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16.0,
+                            vertical: 8.0,
+                          ), // Adjust values as needed
+
+                          child: LinearProgressIndicator(
+                            value: progress,
+                            backgroundColor: Colors.grey[300],
+
+                            minHeight: 6.0,
+                            borderRadius: BorderRadius.circular(8),
+
+                            color:
+                                percentage >= 90
+                                    ? Colors.green
+                                    : percentage >= 80
+                                    ? Colors.blue
+                                    : percentage >= 70
+                                    ? Colors.orange
+                                    : Colors.red,
+                          ),
+                        ),
+                        if (percentage >= 90)
+                          Text("🏆Excellent!", style: TextStyle(fontSize: 18))
+                        else if (percentage >= 80)
+                          Text("👍Great Job!", style: TextStyle(fontSize: 18))
+                        else if (percentage >= 70)
+                          Text("🙂Good Job!", style: TextStyle(fontSize: 18))
+                        else
+                          Text(
+                            "🔄Keep Practicing!",
+                            style: TextStyle(fontSize: 18),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
 
                 for (int i = 0; i < questions.length; i++)
                   Card(
@@ -78,7 +122,11 @@ class ResultScreen extends StatelessWidget {
                       padding: const EdgeInsets.all(16.0),
 
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisAlignment:
+                            MainAxisAlignment
+                                .start, // Controls vertical alignment
+                        crossAxisAlignment: CrossAxisAlignment.start,
+
                         children: [
                           Text(
                             "Question ${i + 1}",
@@ -122,7 +170,7 @@ class ResultScreen extends StatelessWidget {
                                             68,
                                             1.0,
                                           )
-                                          : Color.fromRGBO(229, 231, 235, 1.0),
+                                          : Color.fromRGBO(189, 231, 235, 1.0),
 
                                   width: 1.0,
                                 ),
@@ -153,48 +201,56 @@ class ResultScreen extends StatelessWidget {
                                 userAnswers[i] == questions[i].correctAnswer
                                     ? Icons.check_circle
                                     : Icons.cancel,
-
                                 color:
                                     userAnswers[i] == questions[i].correctAnswer
                                         ? Colors.green
                                         : Colors.red,
                               ),
-
+                              const SizedBox(width: 8),
                               Text(
                                 userAnswers[i] == questions[i].correctAnswer
                                     ? "Correct!"
                                     : "Incorrect!",
-
                                 style: TextStyle(
                                   color:
                                       userAnswers[i] ==
                                               questions[i].correctAnswer
                                           ? Colors.green
                                           : Colors.red,
-
-                                  fontWeight: FontWeight.bold, fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
                                 ),
                               ),
-                              if (userAnswers[i] != questions[i].correctAnswer)
-                                RichText(
-                                  text: TextSpan(
-                                    style: TextStyle(color: Colors.black, fontSize: 16),
-                                    children: [
-                                      const TextSpan(
-                                        text: " The correct answer is ",
-                                      ),
-                                      TextSpan(
-                                        text: questions[i].correctAnswer,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold, fontSize: 16
-                                        ),
-                                      ),
-                                    ],
+                              if (userAnswers[i] !=
+                                  questions[i].correctAnswer) ...[
+                                const SizedBox(width: 4),
+                                const Text(
+                                  "The correct answer is",
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 16,
                                   ),
                                 ),
+                              ],
                             ],
                           ),
 
+                          if (userAnswers[i] != questions[i].correctAnswer)
+                            Align(
+                              alignment: Alignment.center,
+                              child: Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text(
+                                  questions[i].correctAnswer,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                            ),
                           SizedBox(height: 8),
                         ],
                       ),

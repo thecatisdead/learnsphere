@@ -26,7 +26,7 @@ class _QuizScreenState extends State<QuizScreen> {
     ),
     const Question(
       question: "What is 2 + 2?",
-      options: ["3", "Madrid", "5", "6"],
+      options: ["3", "Madridasd asdasdasdas asd a  asd asd", "5", "6"],
       correctAnswer: "Madridasd asdasdasdas asd a  asd asd",
     ),
     const Question(
@@ -34,6 +34,13 @@ class _QuizScreenState extends State<QuizScreen> {
       options: ["3", "4", "5", "6"],
       correctAnswer: "4",
     ),
+        const Question(
+      question: "What is 2 + 3?",
+      options: ["3", "4", "5", "6"],
+      correctAnswer: "4",
+    ),
+    
+    
   ];
 
   @override
