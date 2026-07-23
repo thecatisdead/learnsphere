@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:learnsphere/screens/summary/summary_screen.dart';
 import '/../screens/quiz/quiz_screen.dart';
 
 class StudyMaterialScreen extends StatelessWidget {
@@ -33,7 +34,12 @@ class StudyMaterialScreen extends StatelessWidget {
             const SizedBox(height: 16),
 
             ElevatedButton.icon(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(context,
+                MaterialPageRoute(
+                  builder: (context) => SummaryScreen(),
+                ));
+              },
               icon: const Icon(Icons.summarize),
               label: const Text("Generate Summary"),
             ),

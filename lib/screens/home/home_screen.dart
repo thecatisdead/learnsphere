@@ -7,21 +7,19 @@ import 'widgets/recent_material.dart';
 import 'widgets/upload_card.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:learnsphere/screens/study_material/study_material_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/study_session_provider.dart';
+import '../../models/study_session.dart';
 
-void main() {
-  runApp(const MaterialApp(home: HomeScreen()));
-}
-
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  String? selectedFileName;
-
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  // List<StudySession> recentMaterials = [];
   List<String> recentMaterials = [];
 
   @override
@@ -42,11 +40,19 @@ class _HomeScreenState extends State<HomeScreen> {
               );
 
               if (result != null) {
+                ref
+                    .read(studySessionProvider.notifier)
+                    .setSession(StudySession(fileName: "...", filePath: "..."));
+
                 setState(() {
                   recentMaterials.add(result.files.single.name);
                 });
+
+                print(ref.read(studySessionProvider)?.fileName);
+                print(ref.read(studySessionProvider)?.filePath);
               } else {
                 print('No file selected');
+
                 // User canceled the picker
               }
             },

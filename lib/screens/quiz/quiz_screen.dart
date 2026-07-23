@@ -34,13 +34,11 @@ class _QuizScreenState extends State<QuizScreen> {
       options: ["3", "4", "5", "6"],
       correctAnswer: "4",
     ),
-        const Question(
+    const Question(
       question: "What is 2 + 3?",
       options: ["3", "4", "5", "6"],
       correctAnswer: "4",
     ),
-    
-    
   ];
 
   @override
@@ -69,8 +67,9 @@ class _QuizScreenState extends State<QuizScreen> {
             SizedBox(height: 10),
             ElevatedButton(
               onPressed: () {
+                // error here, fix later; When the user click next without choosing an answer it errors.
                 userAnswers.add(selectedAnswer!);
-
+                //
                 if (selectedAnswer ==
                     questions[currentQuestion].correctAnswer) {
                   score++;
