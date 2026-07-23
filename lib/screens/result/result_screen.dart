@@ -32,30 +32,42 @@ class ResultScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
 
               children: [
-                SizedBox(height: 24),
+                SizedBox(height: 36),
 
                 Text(
                   "Your Score",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                ),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "$score/$totalQuestions • ",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 30,
+                      ),
+                    ),
+                    Text(
+                      "${percentage.toStringAsFixed(0)}%",
+                      style: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
                 ),
 
                 if (percentage >= 90)
-                  Text("🏆Excellent!")
+                  Text("🏆Excellent!", style: TextStyle(fontSize: 22))
                 else if (percentage >= 80)
-                  Text("👍Great Job!")
+                  Text("👍Great Job!", style: TextStyle(fontSize: 22))
                 else if (percentage >= 70)
-                  Text("🙂Good Job!")
+                  Text("🙂Good Job!", style: TextStyle(fontSize: 22))
                 else
-                  Text("🔄Keep Practicing!"),
+                  Text("🔄Keep Practicing!", style: TextStyle(fontSize: 22)),
 
-                Text(
-                  "$score / $totalQuestions",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
-                ),
-                Text(
-                  "${percentage.toStringAsFixed(0)}%",
-                  style: TextStyle(fontSize: 18),
-                ),
                 for (int i = 0; i < questions.length; i++)
                   Card(
                     margin: const EdgeInsets.symmetric(vertical: 8),
@@ -70,12 +82,15 @@ class ResultScreen extends StatelessWidget {
                         children: [
                           Text(
                             "Question ${i + 1}",
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
                           ),
                           Text(
                             questions[i].question,
                             style: TextStyle(
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w500,
                               fontSize: 16,
                             ),
                           ),
@@ -108,6 +123,7 @@ class ResultScreen extends StatelessWidget {
                                             1.0,
                                           )
                                           : Color.fromRGBO(229, 231, 235, 1.0),
+
                                   width: 1.0,
                                 ),
                                 borderRadius: BorderRadius.circular(12.0),
@@ -116,7 +132,14 @@ class ResultScreen extends StatelessWidget {
                               child: ListTile(
                                 title: Text(
                                   option,
-                                  style: TextStyle(fontWeight: FontWeight.bold),
+
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight:
+                                        option == questions[i].correctAnswer
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                  ),
                                 ),
                               ),
                             );
@@ -148,12 +171,14 @@ class ResultScreen extends StatelessWidget {
                                               questions[i].correctAnswer
                                           ? Colors.green
                                           : Colors.red,
+
+                                  fontWeight: FontWeight.bold, fontSize: 16,
                                 ),
                               ),
                               if (userAnswers[i] != questions[i].correctAnswer)
                                 RichText(
                                   text: TextSpan(
-                                    style: TextStyle(color: Colors.black),
+                                    style: TextStyle(color: Colors.black, fontSize: 16),
                                     children: [
                                       const TextSpan(
                                         text: " The correct answer is ",
@@ -161,7 +186,7 @@ class ResultScreen extends StatelessWidget {
                                       TextSpan(
                                         text: questions[i].correctAnswer,
                                         style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
+                                          fontWeight: FontWeight.bold, fontSize: 16
                                         ),
                                       ),
                                     ],

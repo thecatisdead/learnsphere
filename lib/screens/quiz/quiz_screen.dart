@@ -27,7 +27,7 @@ class _QuizScreenState extends State<QuizScreen> {
     const Question(
       question: "What is 2 + 2?",
       options: ["3", "Madrid", "5", "6"],
-      correctAnswer: "Madrid",
+      correctAnswer: "Madridasd asdasdasdas asd a  asd asd",
     ),
     const Question(
       question: "What is 2 + 3?",
