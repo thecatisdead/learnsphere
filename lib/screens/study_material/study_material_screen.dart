@@ -7,6 +7,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class StudyMaterialScreen extends ConsumerWidget {
   const StudyMaterialScreen({super.key});
 
+
+  
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(studySessionProvider);
