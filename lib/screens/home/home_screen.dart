@@ -74,9 +74,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             onMaterialTap: (material) {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => StudyMaterialScreen(fileName: material),
-                ),
+                MaterialPageRoute(builder: (context) => StudyMaterialScreen()),
               );
             },
           ),

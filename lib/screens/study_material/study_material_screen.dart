@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:learnsphere/providers/study_session_provider.dart';
 import 'package:learnsphere/screens/summary/summary_screen.dart';
 import '/../screens/quiz/quiz_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class StudyMaterialScreen extends StatelessWidget {
-  final String fileName;
-
-  const StudyMaterialScreen({super.key, required this.fileName});
+class StudyMaterialScreen extends ConsumerWidget {
+  const StudyMaterialScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final session = ref.watch(studySessionProvider);
+
     return Scaffold(
       appBar: AppBar(title: const Text("Study Material")),
       body: Padding(
@@ -19,7 +21,7 @@ class StudyMaterialScreen extends StatelessWidget {
             Card(
               child: ListTile(
                 leading: const Icon(Icons.picture_as_pdf),
-                title: Text(fileName),
+                title: Text(session?.fileName ?? "No PDF Selected"),
                 subtitle: const Text("Ready to study"),
               ),
             ),
@@ -35,10 +37,10 @@ class StudyMaterialScreen extends StatelessWidget {
 
             ElevatedButton.icon(
               onPressed: () {
-                Navigator.push(context,
-                MaterialPageRoute(
-                  builder: (context) => SummaryScreen(),
-                ));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SummaryScreen()),
+                );
               },
               icon: const Icon(Icons.summarize),
               label: const Text("Generate Summary"),
@@ -51,7 +53,9 @@ class StudyMaterialScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => QuizScreen(fileName: fileName),
+                    builder:
+                        (context) =>
+                            QuizScreen(fileName: session?.fileName ?? ""),
                   ),
                 );
               },
