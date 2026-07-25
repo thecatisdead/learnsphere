@@ -40,6 +40,7 @@ dependencies:
   flutter_riverpod: ^3.2.1
   flutter_pdf_text: ^0.9.0
   flutter_dotenv: ^6.0.1
+  google_generative_ai: ^0.4.7
 
   
 

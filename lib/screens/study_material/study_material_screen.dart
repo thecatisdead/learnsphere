@@ -4,6 +4,7 @@ import 'package:learnsphere/screens/summary/summary_screen.dart';
 import '/../screens/quiz/quiz_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:learnsphere/services/pdf_services.dart';
+import 'package:learnsphere/services/ai_service.dart';
 
 class StudyMaterialScreen extends ConsumerWidget {
   const StudyMaterialScreen({super.key});
@@ -40,7 +41,11 @@ class StudyMaterialScreen extends ConsumerWidget {
               onPressed: () async {
                 if (session == null) return;
 
-                String text = await PdfService.extractText(session.filePath);
+                final text = await PdfService.extractText(session.filePath);
+
+                final summary = await AiService.generateSummary(text);
+
+                print(summary);
 
                 print(text.substring(text.length - 1000));
 

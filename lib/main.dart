@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'app/main_navigation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:learnsphere/config/env.dart';
 
 
 Future<void> main() async {
