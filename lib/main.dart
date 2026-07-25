@@ -10,7 +10,6 @@ Future<void> main() async {
 
   await dotenv.load(fileName: ".env");
 
-  print(Env.geminiApiKey);
   runApp(const ProviderScope(child: MyApp()));
 }
 
