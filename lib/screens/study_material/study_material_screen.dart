@@ -42,7 +42,7 @@ class StudyMaterialScreen extends ConsumerWidget {
 
                 String text = await PdfService.extractText(session.filePath);
 
-             print(text);
+                print(text.substring(text.length - 1000));
 
                 Navigator.push(
                   context,

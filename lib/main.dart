@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import 'app/main_navigation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:learnsphere/config/env.dart';
 
-void main() {
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await dotenv.load(fileName: ".env");
+
+  print(Env.geminiApiKey);
   runApp(const ProviderScope(child: MyApp()));
 }
 
