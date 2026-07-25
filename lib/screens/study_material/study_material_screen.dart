@@ -3,12 +3,10 @@ import 'package:learnsphere/providers/study_session_provider.dart';
 import 'package:learnsphere/screens/summary/summary_screen.dart';
 import '/../screens/quiz/quiz_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:learnsphere/services/pdf_services.dart';
 
 class StudyMaterialScreen extends ConsumerWidget {
   const StudyMaterialScreen({super.key});
-
-
-  
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -39,7 +37,13 @@ class StudyMaterialScreen extends ConsumerWidget {
             const SizedBox(height: 16),
 
             ElevatedButton.icon(
-              onPressed: () {
+              onPressed: () async {
+                if (session == null) return;
+
+                String text = await PdfService.extractText(session.filePath);
+
+             print(text);
+
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => SummaryScreen()),
