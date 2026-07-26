@@ -49,7 +49,15 @@ $firstChunk
 
     print(responseText);
 
-    return [];
+    print(responseText.substring(0, 300));
+    print("...");
+    print(responseText.substring(responseText.length - 300));
+
+    final decoded = jsonDecode(responseText) as List;
+
+    final questions = decoded.map((q) => Question.fromJson(q)).toList();
+
+    return questions;
   }
 
   static List<String> splitIntoChunks(String text, {int chunkSize = 8000}) {

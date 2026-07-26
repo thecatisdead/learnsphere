@@ -78,6 +78,8 @@ class StudyMaterialScreen extends ConsumerWidget {
 
                 ref.read(quizProvider.notifier).setQuiz(questions);
 
+                print("Questions generated: ${questions.length}");
+
                 Navigator.push(
                   context,
                   MaterialPageRoute(
