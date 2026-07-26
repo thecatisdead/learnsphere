@@ -1,48 +1,28 @@
 import 'package:flutter/material.dart';
-import '/../models/question.dart';
 import '../result/result_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/quiz_provider.dart';
 
-class QuizScreen extends StatefulWidget {
+class QuizScreen extends ConsumerStatefulWidget {
   final String fileName;
 
   const QuizScreen({super.key, required this.fileName});
 
   @override
-  State<QuizScreen> createState() => _QuizScreenState();
+  ConsumerState<QuizScreen> createState() => _QuizScreenState();
 }
 
-class _QuizScreenState extends State<QuizScreen> {
+class _QuizScreenState extends ConsumerState<QuizScreen> {
   int currentQuestion = 0;
   int score = 0;
 
   List<String> userAnswers = [];
 
   String? selectedAnswer;
-  final List<Question> questions = [
-    const Question(
-      question: "What is the capital of France?",
-      options: ["Berlin", "Madrid", "Paris", "Rome"],
-      correctAnswer: "Madrid",
-    ),
-    const Question(
-      question: "What is 2 + 2?",
-      options: ["3", "Madridasd asdasdasdas asd a  asd asd", "5", "6"],
-      correctAnswer: "Madridasd asdasdasdas asd a  asd asd",
-    ),
-    const Question(
-      question: "What is 2 + 3?",
-      options: ["3", "4", "5", "6"],
-      correctAnswer: "4",
-    ),
-    const Question(
-      question: "What is 2 + 3?",
-      options: ["3", "4", "5", "6"],
-      correctAnswer: "4",
-    ),
-  ];
 
   @override
   Widget build(BuildContext context) {
+    final questions = ref.watch(quizProvider);
     return Scaffold(
       appBar: AppBar(title: const Text("Quiz")),
       body: Padding(

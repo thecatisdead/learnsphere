@@ -7,6 +7,7 @@ import 'package:learnsphere/services/pdf_services.dart';
 import 'package:learnsphere/services/ai_service.dart';
 import '../../models/summary.dart';
 import '../../providers/summary_provider.dart';
+import '../../providers/quiz_provider.dart';
 
 class StudyMaterialScreen extends ConsumerWidget {
   const StudyMaterialScreen({super.key});
@@ -68,13 +69,19 @@ class StudyMaterialScreen extends ConsumerWidget {
             const SizedBox(height: 12),
 
             ElevatedButton.icon(
-              onPressed: () {
+              onPressed: () async {
+                if (session == null) return;
+
+                final text = await PdfService.extractText(session.filePath);
+
+                final questions = await AiService.generateQuiz(text);
+
+                ref.read(quizProvider.notifier).setQuiz(questions);
+
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder:
-                        (context) =>
-                            QuizScreen(fileName: session?.fileName ?? ""),
+                    builder: (_) => QuizScreen(fileName: session.fileName),
                   ),
                 );
               },

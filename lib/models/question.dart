@@ -3,6 +3,14 @@ class Question {
   final List<String> options;
   final String correctAnswer;
 
+  factory Question.fromJson(Map<String, dynamic> json) {
+    return Question(
+      question: json['question'],
+      options: List<String>.from(json['options']),
+      correctAnswer: json['correctAnswer'],
+    );
+  }
+
   const Question({
     required this.question,
     required this.options,

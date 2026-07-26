@@ -1,11 +1,56 @@
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../../models/question.dart';
+import 'dart:convert';
 
 class AiService {
   static final model = GenerativeModel(
     model: "gemini-3.1-flash-lite",
     apiKey: dotenv.env['GEMINI_API_KEY']!,
   );
+  static Future<List<Question>> generateQuiz(String text) async {
+    final chunks = splitIntoChunks(text);
+    final firstChunk = chunks.first;
+    final prompt = '''
+You are an AI that generates study quizzes.
+
+Based on the following document, generate exactly 10 multiple-choice questions.
+
+Rules:
+- Return ONLY valid JSON.
+- Do NOT use markdown.
+- Do NOT explain anything.
+- Each question must have exactly 4 options.
+- Only one option is correct.
+- The correctAnswer must exactly match one option.
+
+Return this format:
+
+[
+  {
+    "question": "...",
+    "options": [
+      "...",
+      "...",
+      "...",
+      "..."
+    ],
+    "correctAnswer": "..."
+  }
+]
+
+Document:
+
+$firstChunk
+''';
+    final response = await model.generateContent([Content.text(prompt)]);
+
+    final responseText = response.text ?? "";
+
+    print(responseText);
+
+    return [];
+  }
 
   static List<String> splitIntoChunks(String text, {int chunkSize = 8000}) {
     final chunks = <String>[];
