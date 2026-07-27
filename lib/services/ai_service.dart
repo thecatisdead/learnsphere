@@ -10,11 +10,29 @@ class AiService {
   );
   static Future<List<Question>> generateQuiz(String text) async {
     final chunks = splitIntoChunks(text);
-    final firstChunk = chunks.first;
-    final prompt = '''
+
+    final totalQuestions = 10;
+
+    final chunkCount = chunks.length;
+
+    final questionsPerChunk = totalQuestions ~/ chunkCount;
+    final List<Question> questions = [];
+
+    var remainingQuestions = totalQuestions - (questionsPerChunk * chunkCount);
+
+    for (final chunk in chunks) {
+      int questionsForThisChunk = questionsPerChunk;
+
+      if (remainingQuestions > 0) {
+        questionsForThisChunk++;
+        remainingQuestions--;
+      }
+
+      final prompt = '''
+
 You are an AI that generates study quizzes.
 
-Based on the following document, generate exactly 10 multiple-choice questions.
+Based on the following document, generate exactly $questionsForThisChunk multiple-choice questions.
 
 Rules:
 - Return ONLY valid JSON.
@@ -41,21 +59,26 @@ Return this format:
 
 Document:
 
-$firstChunk
+$chunk
 ''';
-    final response = await model.generateContent([Content.text(prompt)]);
 
-    final responseText = response.text ?? "";
+      final response = await model.generateContent([Content.text(prompt)]);
 
-    print(responseText);
+      final responseText = response.text ?? "";
 
-    print(responseText.substring(0, 300));
-    print("...");
-    print(responseText.substring(responseText.length - 300));
+      print(responseText);
 
-    final decoded = jsonDecode(responseText) as List;
+      print(responseText.substring(0, 300));
+      print("...");
+      print(responseText.substring(responseText.length - 300));
+      final decoded = jsonDecode(response.text!) as List<dynamic>;
+      final List<Question> chunkQuestions =
+          decoded
+              .map((q) => Question.fromJson(q as Map<String, dynamic>))
+              .toList();
 
-    final questions = decoded.map((q) => Question.fromJson(q)).toList();
+      questions.addAll(chunkQuestions);
+    }
 
     return questions;
   }
