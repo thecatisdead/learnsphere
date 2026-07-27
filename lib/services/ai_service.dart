@@ -1,11 +1,13 @@
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../models/question.dart';
+import '../../models/flashcard.dart';
+import '../../models/flashcarddeck.dart';
 import 'dart:convert';
 
 class AiService {
   static final model = GenerativeModel(
-    model: "gemini-3.1-flash-lite",
+    model: "gemini-3.5-flash",
     apiKey: dotenv.env['GEMINI_API_KEY']!,
   );
   static Future<List<Question>> generateQuiz(String text) async {
@@ -28,7 +30,7 @@ class AiService {
         remainingQuestions--;
       }
 
-      final prompt = '''
+      final prompt = """
 
 You are an AI that generates study quizzes.
 
@@ -60,7 +62,7 @@ Return this format:
 Document:
 
 $chunk
-''';
+""";
 
       final response = await model.generateContent([Content.text(prompt)]);
 
@@ -132,5 +134,53 @@ $chunk
     final response = await model.generateContent([Content.text(prompt)]);
 
     return response.text ?? "";
+  }
+
+  static Future<FlashcardDeck> generateFlashcards(
+    String fileName,
+    String text,
+  ) async {
+    final chunks = splitIntoChunks(text);
+    final List<Flashcard> flashcards = [];
+
+    for (final chunk in chunks) {
+      final prompt = """ You are an AI that creates study flashcards.
+
+Based on the following study material, generate flashcards for the most important concepts.
+
+Rules:
+- Return ONLY valid JSON.
+- Do NOT use markdown.
+- Do NOT explain anything.
+- Each flashcard must have:
+  - "front"
+  - "back"
+- Keep the front short.
+- Keep the back clear and concise.
+
+Return this format:
+
+[
+  {
+    "front": "...",
+    "back": "..."
+  }
+]
+
+Document:
+
+$chunk """;
+
+      final response = await model.generateContent([Content.text(prompt)]);
+      final decoded = jsonDecode(response.text!) as List<dynamic>;
+      final List<Flashcard> chunkFlashcards =
+          decoded
+              .map((q) => Flashcard.fromJson(q as Map<String, dynamic>))
+              .toList();
+
+               flashcards.addAll(chunkFlashcards);
+    }
+
+    return FlashcardDeck(fileName: fileName, flashcards: flashcards);
   }
 }

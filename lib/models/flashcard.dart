@@ -1,17 +1,17 @@
-class FlashCard {
+class Flashcard {
   final String front;
   final String back;
 
 
 
-factory FlashCard.fromJson(Map<String, dynamic> json){
-  return FlashCard(
+factory Flashcard.fromJson(Map<String, dynamic> json){
+  return Flashcard(
     front: json['front'],
     back: json ['back'],
   );
 }
 
-const FlashCard({
+const Flashcard({
   required this.front,
   required this.back
   
