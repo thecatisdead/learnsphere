@@ -1,8 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/summary.dart';
 
-
-
 class SummaryNotifier extends Notifier<Summary?> {
   @override
   Summary? build() {
@@ -18,7 +16,6 @@ class SummaryNotifier extends Notifier<Summary?> {
   }
 }
 
-final summaryProvider =
-    NotifierProvider<SummaryNotifier, Summary?>(
-      SummaryNotifier.new,
-    );
+final summaryProvider = NotifierProvider<SummaryNotifier, Summary?>(
+  SummaryNotifier.new,
+);
