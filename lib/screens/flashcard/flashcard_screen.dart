@@ -11,9 +11,9 @@ class FlashcardScreen extends ConsumerStatefulWidget {
   ConsumerState<FlashcardScreen> createState() => _FlashcardScreenState();
 }
 
-final GlobalKey<FlipCardState> cardKey = GlobalKey<FlipCardState>();
 
 class _FlashcardScreenState extends ConsumerState<FlashcardScreen> {
+  final GlobalKey<FlipCardState> cardKey = GlobalKey<FlipCardState>();
   int currentIndex = 0;
 
   @override
@@ -87,7 +87,7 @@ class _FlashcardScreenState extends ConsumerState<FlashcardScreen> {
                       }
 
                       setState(() {
-                        currentIndex++;
+                        currentIndex--;
                       });
                     },
                     child: const Text("Back"),
@@ -104,7 +104,7 @@ class _FlashcardScreenState extends ConsumerState<FlashcardScreen> {
                       }
 
                       setState(() {
-                        currentIndex--;
+                        currentIndex++;
                       });
                     },
                     child: const Text("Next"),
