@@ -11,9 +11,7 @@ class FlashcardScreen extends ConsumerStatefulWidget {
   ConsumerState<FlashcardScreen> createState() => _FlashcardScreenState();
 }
 
-
 class _FlashcardScreenState extends ConsumerState<FlashcardScreen> {
-  final GlobalKey<FlipCardState> cardKey = GlobalKey<FlipCardState>();
   int currentIndex = 0;
 
   @override
@@ -42,7 +40,8 @@ class _FlashcardScreenState extends ConsumerState<FlashcardScreen> {
             Expanded(
               child: Center(
                 child: FlipCard(
-                  key: cardKey,
+                  key: ValueKey(currentIndex),
+
                   front: Card(
                     elevation: 4,
                     child: Container(
@@ -81,14 +80,12 @@ class _FlashcardScreenState extends ConsumerState<FlashcardScreen> {
               children: [
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () async {
-                      if (!cardKey.currentState!.isFront) {
-                        await cardKey.currentState!.toggleCard();
+                    onPressed: () {
+                      if (currentIndex > 0) {
+                        setState(() {
+                          currentIndex--;
+                        });
                       }
-
-                      setState(() {
-                        currentIndex--;
-                      });
                     },
                     child: const Text("Back"),
                   ),
@@ -98,14 +95,12 @@ class _FlashcardScreenState extends ConsumerState<FlashcardScreen> {
 
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () async {
-                      if (!cardKey.currentState!.isFront) {
-                        await cardKey.currentState!.toggleCard();
+                    onPressed: () {
+                      if (currentIndex < deck.flashcards.length - 1) {
+                        setState(() {
+                          currentIndex++;
+                        });
                       }
-
-                      setState(() {
-                        currentIndex++;
-                      });
                     },
                     child: const Text("Next"),
                   ),
