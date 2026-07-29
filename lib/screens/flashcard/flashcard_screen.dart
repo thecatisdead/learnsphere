@@ -83,7 +83,7 @@ class _FlashcardScreenState extends ConsumerState<FlashcardScreen> {
             Row(
               children: [
                 Expanded(
-                  child: ElevatedButton(
+                  child: ElevatedButton.icon(
                     onPressed: () {
                       if (currentIndex > 0) {
                         setState(() {
@@ -91,7 +91,21 @@ class _FlashcardScreenState extends ConsumerState<FlashcardScreen> {
                         });
                       }
                     },
-                    child: const Text("Back"),
+
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color.fromRGBO(100, 116, 139, 1.0),
+                      foregroundColor: Colors.white,
+                      elevation: 5, // Shadow
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 30,
+                        vertical: 15,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    label: const Text("Back"),
+                    icon: const Icon(Icons.arrow_back),
                   ),
                 ),
 
@@ -99,7 +113,7 @@ class _FlashcardScreenState extends ConsumerState<FlashcardScreen> {
 
                 Expanded(
                   child: Expanded(
-                    child: ElevatedButton.icon(
+                    child: ElevatedButton(
                       onPressed: () {
                         if (isLastCard) {
                           Navigator.pushAndRemoveUntil(
@@ -117,8 +131,35 @@ class _FlashcardScreenState extends ConsumerState<FlashcardScreen> {
                           });
                         }
                       },
-                      icon: Icon(isLastCard ? Icons.home : Icons.arrow_forward),
-                      label: Text(isLastCard ? "Go Home" : "Next"),
+
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color.fromRGBO(
+                          13,
+                          148,
+                          136,
+                          1.0,
+                        ), // Background
+                        foregroundColor: Colors.white,
+                        elevation: 5, // Shadow
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 30,
+                          vertical: 15,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            isLastCard ? "Go Home" : "Next",
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(isLastCard ? Icons.home : Icons.arrow_forward),
+                        ],
+                      ),
                     ),
                   ),
                 ),
