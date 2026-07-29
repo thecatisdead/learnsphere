@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-enum AiTask { none, summary, quiz, flashcards }
+enum AiTask { none, summary, questions, flashcards }
 
 final aiLoadingProvider = NotifierProvider<AiLoadingNotifier, AiTask>(
   AiLoadingNotifier.new,

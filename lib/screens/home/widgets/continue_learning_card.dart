@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:learnsphere/shared/widgets/app_card.dart';
+import 'package:learnsphere/shared/widgets/app_card_widget.dart';
 import '../../lessons/lesson_screen.dart';
 
 class ContinueLearningCard extends StatelessWidget {

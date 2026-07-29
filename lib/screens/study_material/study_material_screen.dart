@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:learnsphere/providers/study_session_provider.dart';
 import 'package:learnsphere/screens/summary/summary_screen.dart';
-import '/../screens/quiz/quiz_screen.dart';
-import '/../screens/flashcard/flashcard_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:learnsphere/services/pdf_services.dart';
 import 'package:learnsphere/services/ai_service.dart';
@@ -11,6 +9,9 @@ import '../../providers/summary_provider.dart';
 import '../../providers/quiz_provider.dart';
 import '../../providers/flashcard_provider.dart';
 import '../../providers/ai_loading_provider.dart';
+import '../../shared/widgets/loadingdots_widget.dart';
+import '/../screens/quiz/quiz_screen.dart';
+import '/../screens/flashcard/flashcard_screen.dart';
 
 class StudyMaterialScreen extends ConsumerWidget {
   const StudyMaterialScreen({super.key});
@@ -20,6 +21,8 @@ class StudyMaterialScreen extends ConsumerWidget {
     final session = ref.watch(studySessionProvider);
     final loadingTask = ref.watch(aiLoadingProvider);
     final isLoading = loadingTask == AiTask.summary;
+    final isQuizLoading = loadingTask == AiTask.questions;
+    final isFlashcardLoading = loadingTask == AiTask.flashcards;
     return Scaffold(
       appBar: AppBar(title: const Text("Study Material")),
       body: Padding(
@@ -98,82 +101,87 @@ class StudyMaterialScreen extends ConsumerWidget {
                 ),
               ),
 
-              child:
+              child: Row(
+                children: [
                   isLoading
-                      ? const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          ),
-                          SizedBox(width: 12),
-                          Text(
-                            "Generating Summary...",
+                      ? const SizedBox(
+                        width: 28,
+                        height: 28,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          color: Color(0xFFCECBF6),
+                        ),
+                      )
+                      : const Icon(
+                        Icons.summarize,
+                        size: 28,
+                        color: Color(0xFFCECBF6),
+                      ),
+
+                  const SizedBox(width: 12),
+
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      isLoading
+                          ? const LoadingDots(text: "Generating Summary")
+                          : const Text(
+                            "Generate Summary",
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              fontSize: 16,
+                              color: Color(0xFF2C2C2A),
                             ),
                           ),
-                        ],
-                      )
-                      : Row(
-                        children: [
-                          const Icon(
-                            Icons.summarize,
-                            size: 28,
-                            color: Color(0xFFCECBF6),
-                          ),
-                          const SizedBox(width: 12),
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text(
-                                "Generate Summary",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: Color(0xFF2C2C2A),
-                                ),
-                              ),
-                              Text(
-                                "AI-powered notes",
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Color(0xFF5F5E5A),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+
+                      const Text(
+                        "AI-powered notes",
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF5F5E5A),
+                        ),
                       ),
+                    ],
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 12),
 
             ElevatedButton(
-              onPressed: () async {
-                if (session == null) return;
+              onPressed:
+                  isQuizLoading
+                      ? null
+                      : () async {
+                        if (session == null) return;
 
-                final text = await PdfService.extractText(session.filePath);
+                        ref
+                            .read(aiLoadingProvider.notifier)
+                            .setLoading(AiTask.questions);
 
-                final questions = await AiService.generateQuiz(text);
+                        try {
+                          final text = await PdfService.extractText(
+                            session.filePath,
+                          );
 
-                ref.read(quizProvider.notifier).setQuiz(questions);
+                          final questions = await AiService.generateQuiz(text);
 
-                print("Questions generated: ${questions.length}");
+                          ref.read(quizProvider.notifier).setQuiz(questions);
 
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => QuizScreen(fileName: session.fileName),
-                  ),
-                );
-              },
+                          print("Questions generated: ${questions.length}");
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (_) => QuizScreen(fileName: session.fileName),
+                            ),
+                          );
+                        } finally {
+                          ref.read(aiLoadingProvider.notifier).clearLoading();
+                        }
+                      },
 
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.black,
@@ -189,23 +197,39 @@ class StudyMaterialScreen extends ConsumerWidget {
 
               child: Row(
                 children: [
-                  const Icon(Icons.quiz, size: 28.0, color: Color(0xFF9FE1CB)),
+                  isQuizLoading
+                      ? const SizedBox(
+                        width: 28,
+                        height: 28,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          color: Color(0xFFCECBF6),
+                        ),
+                      )
+                      : const Icon(
+                        Icons.quiz,
+                        size: 28,
+                        color: Color(0xFF9FE1CB),
+                      ),
+
                   const SizedBox(width: 12),
 
                   Column(
                     mainAxisSize: MainAxisSize.min,
-
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        "Generate Quiz",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: Color(0xFF2C2C2A),
-                        ),
-                      ),
-                      Text(
+                    children: [
+                      isQuizLoading
+                          ? const LoadingDots(text: "Generating Quiz")
+                          : const Text(
+                            "Generate Quiz",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Color(0xFF2C2C2A),
+                            ),
+                          ),
+
+                      const Text(
                         "AI-powered quizzes",
                         style: TextStyle(
                           fontSize: 12,
@@ -221,23 +245,40 @@ class StudyMaterialScreen extends ConsumerWidget {
             const SizedBox(height: 12),
 
             ElevatedButton(
-              onPressed: () async {
-                if (session == null) return;
+              onPressed:
+                  isFlashcardLoading
+                      ? null
+                      : () async {
+                        if (session == null) return;
 
-                final text = await PdfService.extractText(session.filePath);
+                        ref
+                            .read(aiLoadingProvider.notifier)
+                            .setLoading(AiTask.flashcards);
 
-                final deck = await AiService.generateFlashcards(
-                  session.fileName,
-                  text,
-                );
+                        try {
+                          final text = await PdfService.extractText(
+                            session.filePath,
+                          );
 
-                ref.read(flashcardProvider.notifier).setFlashcardDeck(deck);
+                          final deck = await AiService.generateFlashcards(
+                            session.fileName,
+                            text,
+                          );
 
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const FlashcardScreen()),
-                );
-              },
+                          ref
+                              .read(flashcardProvider.notifier)
+                              .setFlashcardDeck(deck);
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const FlashcardScreen(),
+                            ),
+                          );
+                        } finally {
+                          ref.read(aiLoadingProvider.notifier).clearLoading();
+                        }
+                      },
 
               style: ElevatedButton.styleFrom(
                 elevation: 5, // Shadow
@@ -251,24 +292,40 @@ class StudyMaterialScreen extends ConsumerWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.style, size: 28.0, color: Color(0xFFF4C0D1)),
+                  isFlashcardLoading
+                      ? const SizedBox(
+                        width: 28,
+                        height: 28,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          color: Color(0xFFCECBF6),
+                        ),
+                      )
+                      : const Icon(
+                        Icons.style,
+                        size: 28,
+                        color: Color(0xFFF4C0D1),
+                      ),
+
                   const SizedBox(width: 12),
 
                   Column(
                     mainAxisSize: MainAxisSize.min,
-
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        "Generate Flashcards",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: Color(0xFF2C2C2A),
-                        ),
-                      ),
-                      Text(
-                        "AI-powered quizzes",
+                    children: [
+                      isFlashcardLoading
+                          ? const LoadingDots(text: "Generating Flashcards")
+                          : const Text(
+                            "Generate Flashcards",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Color(0xFF2C2C2A),
+                            ),
+                          ),
+
+                      const Text(
+                        "AI-powered flashcards",
                         style: TextStyle(
                           fontSize: 12,
                           color: Color(0xFF5F5E5A),
