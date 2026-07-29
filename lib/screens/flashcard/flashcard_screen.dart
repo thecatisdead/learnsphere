@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flip_card/flip_card.dart';
+import '/app/main_navigation.dart';
 
 import '../../providers/flashcard_provider.dart';
 
@@ -21,6 +22,7 @@ class _FlashcardScreenState extends ConsumerState<FlashcardScreen> {
     if (deck == null) {
       return const Scaffold(body: Center(child: Text("No flashcards found.")));
     }
+    final isLastCard = currentIndex == deck.flashcards.length - 1;
 
     final flashcard = deck.flashcards[currentIndex];
 
@@ -46,6 +48,7 @@ class _FlashcardScreenState extends ConsumerState<FlashcardScreen> {
                     elevation: 4,
                     child: Container(
                       width: double.infinity,
+                      height: 400,
                       padding: const EdgeInsets.all(24),
                       alignment: Alignment.center,
                       child: Text(
@@ -63,6 +66,7 @@ class _FlashcardScreenState extends ConsumerState<FlashcardScreen> {
                     elevation: 4,
                     child: Container(
                       width: double.infinity,
+                      height: 400,
                       padding: const EdgeInsets.all(24),
                       alignment: Alignment.center,
                       child: Text(
@@ -94,15 +98,28 @@ class _FlashcardScreenState extends ConsumerState<FlashcardScreen> {
                 const SizedBox(width: 20),
 
                 Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (currentIndex < deck.flashcards.length - 1) {
-                        setState(() {
-                          currentIndex++;
-                        });
-                      }
-                    },
-                    child: const Text("Next"),
+                  child: Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        if (isLastCard) {
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) {
+                                return const MainNavigation();
+                              },
+                            ),
+                            (route) => false,
+                          );
+                        } else {
+                          setState(() {
+                            currentIndex++;
+                          });
+                        }
+                      },
+                      icon: Icon(isLastCard ? Icons.home : Icons.arrow_forward),
+                      label: Text(isLastCard ? "Go Home" : "Next"),
+                    ),
                   ),
                 ),
               ],
