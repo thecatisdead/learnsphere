@@ -231,7 +231,7 @@ class StudyMaterialScreen extends ConsumerWidget {
                       : const Icon(
                         Icons.quiz,
                         size: 28,
-                        color: Color(0xFFF4C0D1),
+                        color: Color(0xFF9FE1CB),
                       ),
 
                   const SizedBox(width: 12),
@@ -250,13 +250,13 @@ class StudyMaterialScreen extends ConsumerWidget {
                             ),
                           )
                           : isQuizReady
-                          ? const Text(
-                            "Quiz Ready",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: Color(0xFF2C2C2A),
-                            ),
+                          ? const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.check),
+                              SizedBox(width: 8),
+                              Text("Quiz Ready"),
+                            ],
                           )
                           : const Text(
                             "Generate Quiz",
@@ -329,7 +329,7 @@ class StudyMaterialScreen extends ConsumerWidget {
                       : const Icon(
                         Icons.style,
                         size: 28,
-                        color: Color.fromARGB(255, 152, 162, 247),
+                        color: Color(0xFFF4C0D1),
                       ),
 
                   const SizedBox(width: 12),
@@ -348,13 +348,16 @@ class StudyMaterialScreen extends ConsumerWidget {
                             ),
                           )
                           : isFlashcardReady
-                          ? const Text(
-                            "Flashcards Ready",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: Color(0xFF2C2C2A),
-                            ),
+                          ? const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.check, color: Color.fromARGB(255, 5, 5, 5)),
+                              SizedBox(width: 8),
+                              Text(
+                                "Flashcards Ready",
+                                style: TextStyle(color: Color.fromARGB(255, 5, 5, 5)),
+                              ),
+                            ],
                           )
                           : const Text(
                             "Generate Flashcards",
