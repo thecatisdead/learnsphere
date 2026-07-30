@@ -5,10 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:learnsphere/services/pdf_services.dart';
 import 'package:learnsphere/services/ai_service.dart';
 import '../../models/summary.dart';
+import '../../models/ai_generation_state.dart';
+
 import '../../providers/summary_provider.dart';
 import '../../providers/quiz_provider.dart';
 import '../../providers/flashcard_provider.dart';
 import '../../providers/ai_loading_provider.dart';
+
 import '../../shared/widgets/loadingdots_widget.dart';
 import '/../screens/quiz/quiz_screen.dart';
 import '/../screens/flashcard/flashcard_screen.dart';
@@ -19,10 +22,34 @@ class StudyMaterialScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(studySessionProvider);
-    final loadingTask = ref.watch(aiLoadingProvider);
-    final isLoading = loadingTask == AiTask.summary;
-    final isQuizLoading = loadingTask == AiTask.questions;
-    final isFlashcardLoading = loadingTask == AiTask.flashcards;
+
+    final aiState = ref.watch(aiLoadingProvider);
+
+    final isGeneratingSummary =
+        aiState.task == AiTask.summary &&
+        aiState.status == AiTaskStatus.generating;
+
+    final isSummaryReady =
+        aiState.task == AiTask.summary && aiState.status == AiTaskStatus.ready;
+
+    final isQuizLoading =
+        aiState.task == AiTask.questions &&
+        aiState.status == AiTaskStatus.generating;
+
+    final isQuizReady =
+        aiState.task == AiTask.questions &&
+        aiState.status == AiTaskStatus.ready;
+
+    final isFlashcardLoading =
+        aiState.task == AiTask.flashcards &&
+        aiState.status == AiTaskStatus.generating;
+
+    final isFlashcardReady =
+        aiState.task == AiTask.flashcards &&
+        aiState.status == AiTaskStatus.ready;
+
+    final isBusy = aiState.status == AiTaskStatus.generating;
+
     return Scaffold(
       appBar: AppBar(title: const Text("Study Material")),
       body: Padding(
@@ -52,14 +79,14 @@ class StudyMaterialScreen extends ConsumerWidget {
 
             ElevatedButton(
               onPressed:
-                  isLoading
+                  isBusy
                       ? null
                       : () async {
                         if (session == null) return;
 
                         ref
                             .read(aiLoadingProvider.notifier)
-                            .setLoading(AiTask.summary);
+                            .start(AiTask.summary);
 
                         try {
                           final text = await PdfService.extractText(
@@ -70,6 +97,8 @@ class StudyMaterialScreen extends ConsumerWidget {
                             text,
                           );
 
+                          if (!context.mounted) return;
+
                           final summary = Summary(
                             fileName: session.fileName,
                             text: summaryText,
@@ -79,14 +108,20 @@ class StudyMaterialScreen extends ConsumerWidget {
                               .read(summaryProvider.notifier)
                               .setSummary(summary);
 
+                          ref.read(aiLoadingProvider.notifier).finish();
+
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (_) => const SummaryScreen(),
                             ),
                           );
+                        } catch (e) {
+                          ref.read(aiLoadingProvider.notifier).error();
+
+                          debugPrint(e.toString());
                         } finally {
-                          ref.read(aiLoadingProvider.notifier).clearLoading();
+                          if (context.mounted) {}
                         }
                       },
               style: ElevatedButton.styleFrom(
@@ -103,7 +138,7 @@ class StudyMaterialScreen extends ConsumerWidget {
 
               child: Row(
                 children: [
-                  isLoading
+                  isGeneratingSummary
                       ? const SizedBox(
                         width: 28,
                         height: 28,
@@ -124,8 +159,10 @@ class StudyMaterialScreen extends ConsumerWidget {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      isLoading
+                      isGeneratingSummary
                           ? const LoadingDots(text: "Generating Summary")
+                          : isSummaryReady
+                          ? const Text("✓ Ready")
                           : const Text(
                             "Generate Summary",
                             style: TextStyle(
@@ -158,7 +195,7 @@ class StudyMaterialScreen extends ConsumerWidget {
 
                         ref
                             .read(aiLoadingProvider.notifier)
-                            .setLoading(AiTask.questions);
+                            .start(AiTask.questions);
 
                         try {
                           final text = await PdfService.extractText(
@@ -179,7 +216,7 @@ class StudyMaterialScreen extends ConsumerWidget {
                             ),
                           );
                         } finally {
-                          ref.read(aiLoadingProvider.notifier).clearLoading();
+                          ref.read(aiLoadingProvider.notifier).finish();
                         }
                       },
 
@@ -253,7 +290,7 @@ class StudyMaterialScreen extends ConsumerWidget {
 
                         ref
                             .read(aiLoadingProvider.notifier)
-                            .setLoading(AiTask.flashcards);
+                            .start(AiTask.flashcards);
 
                         try {
                           final text = await PdfService.extractText(
@@ -276,7 +313,7 @@ class StudyMaterialScreen extends ConsumerWidget {
                             ),
                           );
                         } finally {
-                          ref.read(aiLoadingProvider.notifier).clearLoading();
+                          ref.read(aiLoadingProvider.notifier).finish();
                         }
                       },
 

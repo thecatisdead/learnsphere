@@ -1,22 +1,40 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../models/ai_generation_state.dart';
 
 enum AiTask { none, summary, questions, flashcards }
 
-final aiLoadingProvider = NotifierProvider<AiLoadingNotifier, AiTask>(
-  AiLoadingNotifier.new,
-);
+enum AiTaskStatus { idle, generating, ready, error }
 
-class AiLoadingNotifier extends Notifier<AiTask> {
+final aiLoadingProvider =
+    NotifierProvider<AiLoadingNotifier, AiGenerationState>(
+      AiLoadingNotifier.new,
+    );
+
+class AiLoadingNotifier extends Notifier<AiGenerationState> {
   @override
-  AiTask build() {
-    return AiTask.none;
+  AiGenerationState build() {
+    return const AiGenerationState(
+      task: AiTask.none,
+      status: AiTaskStatus.idle,
+    );
   }
 
-  void setLoading(AiTask task) {
-    state = task;
+  void start(AiTask task) {
+    state = state.copyWith(task: task, status: AiTaskStatus.generating);
   }
 
-  void clearLoading() {
-    state = AiTask.none;
+  void finish() {
+    state = state.copyWith(status: AiTaskStatus.ready);
+  }
+
+  void reset() {
+    state = const AiGenerationState(
+      task: AiTask.none,
+      status: AiTaskStatus.idle,
+    );
+  }
+
+  void error() {
+    state = state.copyWith(status: AiTaskStatus.error);
   }
 }

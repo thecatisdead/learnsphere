@@ -4,10 +4,7 @@ import 'package:flutter/material.dart';
 class LoadingDots extends StatefulWidget {
   final String text;
 
-  const LoadingDots({
-    super.key,
-    required this.text,
-  });
+  const LoadingDots({super.key, required this.text});
 
   @override
   State<LoadingDots> createState() => _LoadingDotsState();
