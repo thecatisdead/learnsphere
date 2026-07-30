@@ -23,34 +23,33 @@ class StudyMaterialScreen extends ConsumerWidget {
     final aiState = ref.watch(aiLoadingProvider);
 
     final isGeneratingSummary =
-        aiState.task == AiTask.summary &&
-        aiState.status == AiTaskStatus.generating &&
+        aiState.summaryStatus == AiTaskStatus.generating &&
         aiState.filePath == session?.filePath;
+
     final isSummaryReady =
-        aiState.task == AiTask.summary &&
-        aiState.status == AiTaskStatus.ready &&
+        aiState.summaryStatus == AiTaskStatus.ready &&
         aiState.filePath == session?.filePath;
 
     final isQuizLoading =
-        aiState.task == AiTask.quiz &&
-        aiState.status == AiTaskStatus.generating &&
+        aiState.quizStatus == AiTaskStatus.generating &&
         aiState.filePath == session?.filePath;
+
     final isQuizReady =
-        aiState.task == AiTask.quiz &&
-        aiState.status == AiTaskStatus.ready &&
+        aiState.quizStatus == AiTaskStatus.ready &&
         aiState.filePath == session?.filePath;
 
     final isFlashcardLoading =
-        aiState.task == AiTask.flashcards &&
-        aiState.status == AiTaskStatus.generating &&
+        aiState.flashcardStatus == AiTaskStatus.generating &&
         aiState.filePath == session?.filePath;
 
     final isFlashcardReady =
-        aiState.task == AiTask.flashcards &&
-        aiState.status == AiTaskStatus.ready &&
+        aiState.flashcardStatus == AiTaskStatus.ready &&
         aiState.filePath == session?.filePath;
 
-    final isBusy = aiState.status == AiTaskStatus.generating;
+    final isBusy =
+        aiState.summaryStatus == AiTaskStatus.generating ||
+        aiState.quizStatus == AiTaskStatus.generating ||
+        aiState.flashcardStatus == AiTaskStatus.generating;
 
     return Scaffold(
       appBar: AppBar(title: const Text("Study Material")),
@@ -330,7 +329,7 @@ class StudyMaterialScreen extends ConsumerWidget {
                       : const Icon(
                         Icons.style,
                         size: 28,
-                        color: Color.fromARGB(255, 4, 12, 83),
+                        color: Color.fromARGB(255, 152, 162, 247),
                       ),
 
                   const SizedBox(width: 12),

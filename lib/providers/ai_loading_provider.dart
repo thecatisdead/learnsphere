@@ -1,35 +1,43 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../providers/summary_provider.dart';
-import 'package:learnsphere/services/pdf_services.dart';
-import 'package:learnsphere/services/ai_service.dart';
-import '../../models/summary.dart';
 import '../providers/quiz_provider.dart';
 import '../providers/flashcard_provider.dart';
+
+import 'package:learnsphere/services/pdf_services.dart';
+import 'package:learnsphere/services/ai_service.dart';
+
+import '../../models/summary.dart';
 
 enum AiTask { none, summary, quiz, flashcards }
 
 enum AiTaskStatus { idle, generating, ready, error }
 
 class AiGenerationState {
-  final AiTask task;
-  final AiTaskStatus status;
   final String? filePath;
 
+  final AiTaskStatus summaryStatus;
+  final AiTaskStatus quizStatus;
+  final AiTaskStatus flashcardStatus;
+
   const AiGenerationState({
-    required this.task,
-    required this.status,
     this.filePath,
+    this.summaryStatus = AiTaskStatus.idle,
+    this.quizStatus = AiTaskStatus.idle,
+    this.flashcardStatus = AiTaskStatus.idle,
   });
 
   AiGenerationState copyWith({
-    AiTask? task,
-    AiTaskStatus? status,
     String? filePath,
+    AiTaskStatus? summaryStatus,
+    AiTaskStatus? quizStatus,
+    AiTaskStatus? flashcardStatus,
   }) {
     return AiGenerationState(
-      task: task ?? this.task,
-      status: status ?? this.status,
       filePath: filePath ?? this.filePath,
+      summaryStatus: summaryStatus ?? this.summaryStatus,
+      quizStatus: quizStatus ?? this.quizStatus,
+      flashcardStatus: flashcardStatus ?? this.flashcardStatus,
     );
   }
 }
@@ -37,41 +45,107 @@ class AiGenerationState {
 class AiLoadingNotifier extends Notifier<AiGenerationState> {
   @override
   AiGenerationState build() {
-    return const AiGenerationState(
-      task: AiTask.none,
-      status: AiTaskStatus.idle,
-    );
+    return const AiGenerationState();
   }
 
   void start(AiTask task, String filePath) {
-    state = AiGenerationState(
-      task: task,
-      status: AiTaskStatus.generating,
-      filePath: filePath,
-    );
+    // If this is a different PDF, start fresh.
+    if (state.filePath != filePath) {
+      state = AiGenerationState(
+        filePath: filePath,
+        summaryStatus:
+            task == AiTask.summary
+                ? AiTaskStatus.generating
+                : AiTaskStatus.idle,
+        quizStatus:
+            task == AiTask.quiz
+                ? AiTaskStatus.generating
+                : AiTaskStatus.idle,
+        flashcardStatus:
+            task == AiTask.flashcards
+                ? AiTaskStatus.generating
+                : AiTaskStatus.idle,
+      );
+      return;
+    }
+
+    // Same PDF: keep the other AI results.
+    switch (task) {
+      case AiTask.summary:
+        state = state.copyWith(
+          summaryStatus: AiTaskStatus.generating,
+        );
+        break;
+
+      case AiTask.quiz:
+        state = state.copyWith(
+          quizStatus: AiTaskStatus.generating,
+        );
+        break;
+
+      case AiTask.flashcards:
+        state = state.copyWith(
+          flashcardStatus: AiTaskStatus.generating,
+        );
+        break;
+
+      case AiTask.none:
+        break;
+    }
   }
 
-  void finish() {
-    state = AiGenerationState(
-      task: state.task,
-      status: AiTaskStatus.ready,
-      filePath: state.filePath,
-    );
+  void finish(AiTask task) {
+    switch (task) {
+      case AiTask.summary:
+        state = state.copyWith(
+          summaryStatus: AiTaskStatus.ready,
+        );
+        break;
+
+      case AiTask.quiz:
+        state = state.copyWith(
+          quizStatus: AiTaskStatus.ready,
+        );
+        break;
+
+      case AiTask.flashcards:
+        state = state.copyWith(
+          flashcardStatus: AiTaskStatus.ready,
+        );
+        break;
+
+      case AiTask.none:
+        break;
+    }
   }
 
-  void error() {
-    state = AiGenerationState(
-      task: state.task,
-      status: AiTaskStatus.error,
-      filePath: state.filePath,
-    );
+  void error(AiTask task) {
+    switch (task) {
+      case AiTask.summary:
+        state = state.copyWith(
+          summaryStatus: AiTaskStatus.error,
+        );
+        break;
+
+      case AiTask.quiz:
+        state = state.copyWith(
+          quizStatus: AiTaskStatus.error,
+        );
+        break;
+
+      case AiTask.flashcards:
+        state = state.copyWith(
+          flashcardStatus: AiTaskStatus.error,
+        );
+        break;
+
+      case AiTask.none:
+        break;
+    }
   }
 
   void reset() {
-    state = const AiGenerationState(
-      task: AiTask.none,
-      status: AiTaskStatus.idle,
-    );
+    state = const AiGenerationState();
   }
 
   Future<void> generateSummary({
@@ -85,13 +159,16 @@ class AiLoadingNotifier extends Notifier<AiGenerationState> {
 
       final summaryText = await AiService.generateSummary(text);
 
-      final summary = Summary(fileName: fileName, text: summaryText);
+      final summary = Summary(
+        fileName: fileName,
+        text: summaryText,
+      );
 
       ref.read(summaryProvider.notifier).setSummary(summary);
 
-      finish();
+      finish(AiTask.summary);
     } catch (e) {
-      error();
+      error(AiTask.summary);
       print(e.toString());
     }
   }
@@ -109,9 +186,9 @@ class AiLoadingNotifier extends Notifier<AiGenerationState> {
 
       ref.read(quizProvider.notifier).setQuiz(quiz);
 
-      finish();
+      finish(AiTask.quiz);
     } catch (e) {
-      error();
+      error(AiTask.quiz);
       print(e.toString());
     }
   }
@@ -125,13 +202,18 @@ class AiLoadingNotifier extends Notifier<AiGenerationState> {
     try {
       final text = await PdfService.extractText(filePath);
 
-      final flashcards = await AiService.generateFlashcards(fileName, text);
+      final flashcards = await AiService.generateFlashcards(
+        fileName,
+        text,
+      );
 
-      ref.read(flashcardProvider.notifier).setFlashcardDeck(flashcards);
+      ref
+          .read(flashcardProvider.notifier)
+          .setFlashcardDeck(flashcards);
 
-      finish();
+      finish(AiTask.flashcards);
     } catch (e) {
-      error();
+      error(AiTask.flashcards);
       print(e.toString());
     }
   }
@@ -139,5 +221,5 @@ class AiLoadingNotifier extends Notifier<AiGenerationState> {
 
 final aiLoadingProvider =
     NotifierProvider<AiLoadingNotifier, AiGenerationState>(
-      AiLoadingNotifier.new,
-    );
+  AiLoadingNotifier.new,
+);
