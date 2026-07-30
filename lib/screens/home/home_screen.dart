@@ -61,9 +61,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 }
 
                 ref.read(studySessionProvider.notifier).setSession(session);
-              } else {
-                print("No file selected");
-              }
+              } else {}
             },
           ),
           RecentMaterialSection(

@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 
 class LoadingDots extends StatefulWidget {
   final String text;
+  final TextStyle? style;
 
-  const LoadingDots({super.key, required this.text});
+  const LoadingDots({super.key, required this.text, this.style});
 
   @override
   State<LoadingDots> createState() => _LoadingDotsState();
@@ -35,11 +36,13 @@ class _LoadingDotsState extends State<LoadingDots> {
   Widget build(BuildContext context) {
     return Text(
       "${widget.text}${"." * dots}",
-      style: const TextStyle(
-        fontWeight: FontWeight.bold,
-        fontSize: 16,
-        color: Color(0xFF2C2C2A),
-      ),
+      style:
+          widget.style ??
+          const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            color: Color(0xFF2C2C2A),
+          ),
     );
   }
 }

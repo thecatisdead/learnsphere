@@ -4,10 +4,7 @@ import 'package:learnsphere/screens/summary/summary_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:learnsphere/services/pdf_services.dart';
 import 'package:learnsphere/services/ai_service.dart';
-import '../../models/summary.dart';
-import '../../models/ai_generation_state.dart';
 
-import '../../providers/summary_provider.dart';
 import '../../providers/quiz_provider.dart';
 import '../../providers/flashcard_provider.dart';
 import '../../providers/ai_loading_provider.dart';
@@ -27,26 +24,31 @@ class StudyMaterialScreen extends ConsumerWidget {
 
     final isGeneratingSummary =
         aiState.task == AiTask.summary &&
-        aiState.status == AiTaskStatus.generating;
-
+        aiState.status == AiTaskStatus.generating &&
+        aiState.filePath == session?.filePath;
     final isSummaryReady =
-        aiState.task == AiTask.summary && aiState.status == AiTaskStatus.ready;
+        aiState.task == AiTask.summary &&
+        aiState.status == AiTaskStatus.ready &&
+        aiState.filePath == session?.filePath;
 
     final isQuizLoading =
-        aiState.task == AiTask.questions &&
-        aiState.status == AiTaskStatus.generating;
-
+        aiState.task == AiTask.quiz &&
+        aiState.status == AiTaskStatus.generating &&
+        aiState.filePath == session?.filePath;
     final isQuizReady =
-        aiState.task == AiTask.questions &&
-        aiState.status == AiTaskStatus.ready;
+        aiState.task == AiTask.quiz &&
+        aiState.status == AiTaskStatus.ready &&
+        aiState.filePath == session?.filePath;
 
     final isFlashcardLoading =
         aiState.task == AiTask.flashcards &&
-        aiState.status == AiTaskStatus.generating;
+        aiState.status == AiTaskStatus.generating &&
+        aiState.filePath == session?.filePath;
 
     final isFlashcardReady =
         aiState.task == AiTask.flashcards &&
-        aiState.status == AiTaskStatus.ready;
+        aiState.status == AiTaskStatus.ready &&
+        aiState.filePath == session?.filePath;
 
     final isBusy = aiState.status == AiTaskStatus.generating;
 
@@ -81,48 +83,25 @@ class StudyMaterialScreen extends ConsumerWidget {
               onPressed:
                   isBusy
                       ? null
-                      : () async {
+                      : () {
                         if (session == null) return;
 
-                        ref
-                            .read(aiLoadingProvider.notifier)
-                            .start(AiTask.summary);
-
-                        try {
-                          final text = await PdfService.extractText(
-                            session.filePath,
-                          );
-
-                          final summaryText = await AiService.generateSummary(
-                            text,
-                          );
-
-                          if (!context.mounted) return;
-
-                          final summary = Summary(
-                            fileName: session.fileName,
-                            text: summaryText,
-                          );
-
-                          ref
-                              .read(summaryProvider.notifier)
-                              .setSummary(summary);
-
-                          ref.read(aiLoadingProvider.notifier).finish();
-
+                        if (isSummaryReady) {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (_) => const SummaryScreen(),
                             ),
                           );
-                        } catch (e) {
-                          ref.read(aiLoadingProvider.notifier).error();
-
-                          debugPrint(e.toString());
-                        } finally {
-                          if (context.mounted) {}
+                          return;
                         }
+
+                        ref
+                            .read(aiLoadingProvider.notifier)
+                            .generateSummary(
+                              filePath: session.filePath,
+                              fileName: session.fileName,
+                            );
                       },
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.black,
@@ -138,6 +117,7 @@ class StudyMaterialScreen extends ConsumerWidget {
 
               child: Row(
                 children: [
+                  // Icon → Spinner while generating
                   isGeneratingSummary
                       ? const SizedBox(
                         width: 28,
@@ -155,14 +135,29 @@ class StudyMaterialScreen extends ConsumerWidget {
 
                   const SizedBox(width: 12),
 
+                  // Text area
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       isGeneratingSummary
-                          ? const LoadingDots(text: "Generating Summary")
+                          ? const LoadingDots(
+                            text: "Generating Summary",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Color(0xFF2C2C2A),
+                            ),
+                          )
                           : isSummaryReady
-                          ? const Text("✓ Ready")
+                          ? const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.check),
+                              SizedBox(width: 8),
+                              Text("Summary Ready"),
+                            ],
+                          )
                           : const Text(
                             "Generate Summary",
                             style: TextStyle(
@@ -188,26 +183,12 @@ class StudyMaterialScreen extends ConsumerWidget {
 
             ElevatedButton(
               onPressed:
-                  isQuizLoading
+                  isBusy
                       ? null
-                      : () async {
+                      : () {
                         if (session == null) return;
 
-                        ref
-                            .read(aiLoadingProvider.notifier)
-                            .start(AiTask.questions);
-
-                        try {
-                          final text = await PdfService.extractText(
-                            session.filePath,
-                          );
-
-                          final questions = await AiService.generateQuiz(text);
-
-                          ref.read(quizProvider.notifier).setQuiz(questions);
-
-                          print("Questions generated: ${questions.length}");
-
+                        if (isQuizReady) {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -215,11 +196,16 @@ class StudyMaterialScreen extends ConsumerWidget {
                                   (_) => QuizScreen(fileName: session.fileName),
                             ),
                           );
-                        } finally {
-                          ref.read(aiLoadingProvider.notifier).finish();
+                          return;
                         }
-                      },
 
+                        ref
+                            .read(aiLoadingProvider.notifier)
+                            .generateQuiz(
+                              filePath: session.filePath,
+                              fileName: session.fileName,
+                            );
+                      },
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.black,
                 elevation: 5, // Shadow
@@ -246,7 +232,7 @@ class StudyMaterialScreen extends ConsumerWidget {
                       : const Icon(
                         Icons.quiz,
                         size: 28,
-                        color: Color(0xFF9FE1CB),
+                        color: Color(0xFFF4C0D1),
                       ),
 
                   const SizedBox(width: 12),
@@ -256,7 +242,23 @@ class StudyMaterialScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       isQuizLoading
-                          ? const LoadingDots(text: "Generating Quiz")
+                          ? const LoadingDots(
+                            text: "Generating Quiz",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Color(0xFF2C2C2A),
+                            ),
+                          )
+                          : isQuizReady
+                          ? const Text(
+                            "Quiz Ready",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Color(0xFF2C2C2A),
+                            ),
+                          )
                           : const Text(
                             "Generate Quiz",
                             style: TextStyle(
@@ -267,7 +269,7 @@ class StudyMaterialScreen extends ConsumerWidget {
                           ),
 
                       const Text(
-                        "AI-powered quizzes",
+                        "AI-powered questions",
                         style: TextStyle(
                           fontSize: 12,
                           color: Color(0xFF5F5E5A),
@@ -278,45 +280,32 @@ class StudyMaterialScreen extends ConsumerWidget {
                 ],
               ),
             ),
-
             const SizedBox(height: 12),
 
             ElevatedButton(
               onPressed:
-                  isFlashcardLoading
+                  isBusy
                       ? null
-                      : () async {
+                      : () {
                         if (session == null) return;
 
-                        ref
-                            .read(aiLoadingProvider.notifier)
-                            .start(AiTask.flashcards);
-
-                        try {
-                          final text = await PdfService.extractText(
-                            session.filePath,
-                          );
-
-                          final deck = await AiService.generateFlashcards(
-                            session.fileName,
-                            text,
-                          );
-
-                          ref
-                              .read(flashcardProvider.notifier)
-                              .setFlashcardDeck(deck);
-
+                        if (isFlashcardReady) {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => const FlashcardScreen(),
+                              builder: (_) => FlashcardScreen(),
                             ),
                           );
-                        } finally {
-                          ref.read(aiLoadingProvider.notifier).finish();
+                          return;
                         }
-                      },
 
+                        ref
+                            .read(aiLoadingProvider.notifier)
+                            .generateFlashcards(
+                              filePath: session.filePath,
+                              fileName: session.fileName,
+                            );
+                      },
               style: ElevatedButton.styleFrom(
                 elevation: 5, // Shadow
                 padding: const EdgeInsets.symmetric(
@@ -341,7 +330,7 @@ class StudyMaterialScreen extends ConsumerWidget {
                       : const Icon(
                         Icons.style,
                         size: 28,
-                        color: Color(0xFFF4C0D1),
+                        color: Color.fromARGB(255, 4, 12, 83),
                       ),
 
                   const SizedBox(width: 12),
@@ -351,7 +340,23 @@ class StudyMaterialScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       isFlashcardLoading
-                          ? const LoadingDots(text: "Generating Flashcards")
+                          ? const LoadingDots(
+                            text: "Generating Flashcards",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Color(0xFF2C2C2A),
+                            ),
+                          )
+                          : isFlashcardReady
+                          ? const Text(
+                            "Flashcards Ready",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Color(0xFF2C2C2A),
+                            ),
+                          )
                           : const Text(
                             "Generate Flashcards",
                             style: TextStyle(
@@ -373,7 +378,6 @@ class StudyMaterialScreen extends ConsumerWidget {
                 ],
               ),
             ),
-
             const SizedBox(height: 12),
           ],
         ),
