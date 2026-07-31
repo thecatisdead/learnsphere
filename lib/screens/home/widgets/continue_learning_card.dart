@@ -61,17 +61,6 @@ class ContinueLearningCard extends StatelessWidget {
               ],
             ),
             SizedBox(height: 8),
-
-            LinearProgressIndicator(
-              value: progress,
-              backgroundColor: Colors.grey[300],
-              color: const Color.fromARGB(181, 0, 110, 255),
-              minHeight: 12.0,
-              borderRadius: BorderRadius.circular(8),
-            ),
-
-            SizedBox(height: 8),
-            Text("${(progress * 100).toInt()}% Complete"),
           ],
         ),
       ),

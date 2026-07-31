@@ -26,7 +26,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final recentMaterials = ref.watch(recentMaterialsProvider);
     final aiMaterials = ref.watch(aiMaterialProvider);
 
-    final session = recentMaterials.isNotEmpty ? recentMaterials.first : null;
+    final session = ref.watch(studySessionProvider);
 
     final aiMaterial = session == null ? null : aiMaterials[session.filePath];
 
@@ -45,8 +45,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               quizReady: aiMaterial?.quizReady ?? false,
               flashcardsReady: aiMaterial?.flashcardsReady ?? false,
               onTap: () {
-                ref.read(studySessionProvider.notifier).setSession(session);
-
                 Navigator.push(
                   context,
                   MaterialPageRoute(
