@@ -7,7 +7,7 @@ import 'dart:convert';
 
 class AiService {
   static final model = GenerativeModel(
-    model: "gemini-3.1-flash-lite",
+    model: "gemini-3.5-flash-lite",
     apiKey: dotenv.env['GEMINI_API_KEY']!,
   );
   static Future<List<Question>> generateQuiz(String text) async {

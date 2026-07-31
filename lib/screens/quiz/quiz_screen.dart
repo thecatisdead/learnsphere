@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../result/result_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/quiz_provider.dart';
-
+import '../../providers/study_session_provider.dart';
 
 class QuizScreen extends ConsumerStatefulWidget {
   final String fileName;
@@ -23,7 +23,17 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final questions = ref.watch(quizProvider);
+    final quizMap = ref.watch(quizProvider);
+    final session = ref.watch(studySessionProvider);
+
+    final quiz = session == null ? null : quizMap[session.filePath];
+
+    if (quiz == null) {
+      return const Scaffold(body: Center(child: Text("Quiz not found.")));
+    }
+
+    final questions = quiz.questions;
+
     return Scaffold(
       appBar: AppBar(title: const Text("Quiz")),
       body: Padding(
@@ -32,7 +42,9 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(questions[currentQuestion].question),
-            SizedBox(height: 10),
+
+            const SizedBox(height: 10),
+
             ...questions[currentQuestion].options.map((option) {
               return RadioListTile<String>(
                 title: Text(option),
@@ -45,12 +57,17 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
                 },
               );
             }),
-            SizedBox(height: 10),
+
+            const SizedBox(height: 10),
+
             ElevatedButton(
               onPressed: () {
-                // error here, fix later; When the user click next without choosing an answer it errors.
+                if (selectedAnswer == null) {
+                  return;
+                }
+
                 userAnswers.add(selectedAnswer!);
-                //
+
                 if (selectedAnswer ==
                     questions[currentQuestion].correctAnswer) {
                   score++;
@@ -59,7 +76,6 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
                 if (currentQuestion < questions.length - 1) {
                   setState(() {
                     currentQuestion++;
-
                     selectedAnswer = null;
                   });
                 } else {
@@ -71,7 +87,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
                           score: score,
                           totalQuestions: questions.length,
                           fileName: widget.fileName,
-                          questions: questions,
+                          questions: quiz.questions,
                           userAnswers: userAnswers,
                         );
                       },

@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/study_session_provider.dart';
 import '../../models/study_session.dart';
 import '../../providers/recent_materials_provider.dart';
+import '/../providers/ai_material_provider.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -23,15 +24,37 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final recentMaterials = ref.watch(recentMaterialsProvider);
+    final aiMaterials = ref.watch(aiMaterialProvider);
+
+    final session = recentMaterials.isNotEmpty ? recentMaterials.first : null;
+
+    final aiMaterial = session == null ? null : aiMaterials[session.filePath];
 
     return Scaffold(
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          SizedBox(height: 60),
           GreetingHeader(),
           SizedBox(height: 20),
 
-          ContinueLearningCard(progress: 0.5),
+          if (session != null)
+            ContinueLearningCard(
+              session: session,
+              summaryReady: aiMaterial?.summaryReady ?? false,
+              quizReady: aiMaterial?.quizReady ?? false,
+              flashcardsReady: aiMaterial?.flashcardsReady ?? false,
+              onTap: () {
+                ref.read(studySessionProvider.notifier).setSession(session);
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const StudyMaterialScreen(),
+                  ),
+                );
+              },
+            ),
           UploadCard(
             onTap: () async {
               FilePickerResult? result = await FilePicker.pickFiles(
@@ -59,6 +82,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   );
                   return;
                 }
+
+                ref.read(aiMaterialProvider.notifier).addMaterial(session);
 
                 ref.read(studySessionProvider.notifier).setSession(session);
               } else {}

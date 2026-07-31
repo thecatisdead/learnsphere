@@ -2,16 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:learnsphere/providers/study_session_provider.dart';
 import 'package:learnsphere/screens/summary/summary_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:learnsphere/services/pdf_services.dart';
-import 'package:learnsphere/services/ai_service.dart';
 
-import '../../providers/quiz_provider.dart';
-import '../../providers/flashcard_provider.dart';
 import '../../providers/ai_loading_provider.dart';
 
 import '../../shared/widgets/loadingdots_widget.dart';
 import '/../screens/quiz/quiz_screen.dart';
 import '/../screens/flashcard/flashcard_screen.dart';
+import '../../providers/ai_material_provider.dart';
 
 class StudyMaterialScreen extends ConsumerWidget {
   const StudyMaterialScreen({super.key});
@@ -21,30 +18,27 @@ class StudyMaterialScreen extends ConsumerWidget {
     final session = ref.watch(studySessionProvider);
 
     final aiState = ref.watch(aiLoadingProvider);
+    final aiMaterials = ref.watch(aiMaterialProvider);
+
+    final material = session == null ? null : aiMaterials[session.filePath];
 
     final isGeneratingSummary =
         aiState.summaryStatus == AiTaskStatus.generating &&
         aiState.filePath == session?.filePath;
 
-    final isSummaryReady =
-        aiState.summaryStatus == AiTaskStatus.ready &&
-        aiState.filePath == session?.filePath;
+    final isSummaryReady = material?.summaryReady ?? false;
 
     final isQuizLoading =
         aiState.quizStatus == AiTaskStatus.generating &&
         aiState.filePath == session?.filePath;
 
-    final isQuizReady =
-        aiState.quizStatus == AiTaskStatus.ready &&
-        aiState.filePath == session?.filePath;
+    final isQuizReady = material?.quizReady ?? false;
 
     final isFlashcardLoading =
         aiState.flashcardStatus == AiTaskStatus.generating &&
         aiState.filePath == session?.filePath;
 
-    final isFlashcardReady =
-        aiState.flashcardStatus == AiTaskStatus.ready &&
-        aiState.filePath == session?.filePath;
+    final isFlashcardReady = material?.flashcardsReady ?? false;
 
     final isBusy =
         aiState.summaryStatus == AiTaskStatus.generating ||
@@ -351,11 +345,16 @@ class StudyMaterialScreen extends ConsumerWidget {
                           ? const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.check, color: Color.fromARGB(255, 5, 5, 5)),
+                              Icon(
+                                Icons.check,
+                                color: Color.fromARGB(255, 5, 5, 5),
+                              ),
                               SizedBox(width: 8),
                               Text(
                                 "Flashcards Ready",
-                                style: TextStyle(color: Color.fromARGB(255, 5, 5, 5)),
+                                style: TextStyle(
+                                  color: Color.fromARGB(255, 5, 5, 5),
+                                ),
                               ),
                             ],
                           )

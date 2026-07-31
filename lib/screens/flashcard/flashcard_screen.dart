@@ -5,6 +5,8 @@ import '/app/main_navigation.dart';
 
 import '../../providers/flashcard_provider.dart';
 
+import '../../providers/study_session_provider.dart';
+
 class FlashcardScreen extends ConsumerStatefulWidget {
   const FlashcardScreen({super.key});
 
@@ -17,7 +19,10 @@ class _FlashcardScreenState extends ConsumerState<FlashcardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final deck = ref.watch(flashcardProvider);
+    final flashcardMap = ref.watch(flashcardProvider);
+    final session = ref.watch(studySessionProvider);
+
+    final deck = session == null ? null : flashcardMap[session.filePath];
 
     if (deck == null) {
       return const Scaffold(body: Center(child: Text("No flashcards found.")));
