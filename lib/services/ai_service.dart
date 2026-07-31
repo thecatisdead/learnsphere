@@ -178,9 +178,37 @@ $chunk """;
               .map((q) => Flashcard.fromJson(q as Map<String, dynamic>))
               .toList();
 
-               flashcards.addAll(chunkFlashcards);
+      flashcards.addAll(chunkFlashcards);
     }
 
     return FlashcardDeck(fileName: fileName, flashcards: flashcards);
+  }
+
+  static Future<String> askAboutPdf({
+    required String pdfText,
+    required String question,
+  }) async {
+    final prompt = """
+You are an AI study assistant.
+
+Answer the user's question using ONLY the information contained in the document below.
+
+Rules:
+- Do not use outside knowledge.
+- If the answer cannot be found in the document, say:
+  "I couldn't find the answer in this PDF."
+- Be clear and concise.
+- Explain the answer in a way that helps the student understand it.
+
+DOCUMENT:
+$pdfText
+
+USER QUESTION:
+$question
+""";
+
+    final response = await model.generateContent([Content.text(prompt)]);
+
+    return response.text ?? "I couldn't generate an answer.";
   }
 }

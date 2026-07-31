@@ -10,6 +10,8 @@ import '../../models/quiz.dart';
 import '../../models/summary.dart';
 import '../providers/ai_material_provider.dart';
 
+import '../providers/pdf_text_provider.dart';
+
 enum AiTask { none, summary, quiz, flashcards }
 
 enum AiTaskStatus { idle, generating, ready, error }
@@ -136,7 +138,7 @@ class AiLoadingNotifier extends Notifier<AiGenerationState> {
     start(AiTask.summary, filePath);
 
     try {
-      final text = await PdfService.extractText(filePath);
+      final text = await ref.read(pdfTextProvider.notifier).loadText(filePath);
 
       final summaryText = await AiService.generateSummary(text);
 
@@ -160,7 +162,7 @@ class AiLoadingNotifier extends Notifier<AiGenerationState> {
     start(AiTask.quiz, filePath);
 
     try {
-      final text = await PdfService.extractText(filePath);
+      final text = await ref.read(pdfTextProvider.notifier).loadText(filePath);
 
       final questions = await AiService.generateQuiz(text);
 
@@ -183,7 +185,7 @@ class AiLoadingNotifier extends Notifier<AiGenerationState> {
     start(AiTask.flashcards, filePath);
 
     try {
-      final text = await PdfService.extractText(filePath);
+      final text = await ref.read(pdfTextProvider.notifier).loadText(filePath);
 
       final flashcards = await AiService.generateFlashcards(fileName, text);
 

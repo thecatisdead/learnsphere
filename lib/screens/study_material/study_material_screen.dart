@@ -9,6 +9,7 @@ import '../../shared/widgets/loadingdots_widget.dart';
 import '/../screens/quiz/quiz_screen.dart';
 import '/../screens/flashcard/flashcard_screen.dart';
 import '../../providers/ai_material_provider.dart';
+import 'package:learnsphere/screens/chat/study_chat_screen.dart';
 
 class StudyMaterialScreen extends ConsumerWidget {
   const StudyMaterialScreen({super.key});
@@ -380,6 +381,26 @@ class StudyMaterialScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 12),
+
+            const SizedBox(height: 12),
+
+            ElevatedButton(
+              onPressed: () {
+                if (session == null) return;
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (_) => StudyChatScreen(
+                          fileName: session.fileName,
+                          filePath: session.filePath,
+                        ),
+                  ),
+                );
+              },
+              child: const Text("Ask AI"),
+            ),
           ],
         ),
       ),
