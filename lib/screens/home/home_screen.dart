@@ -11,7 +11,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/study_session_provider.dart';
 import '../../models/study_session.dart';
 import '../../providers/recent_materials_provider.dart';
-import '/../providers/ai_material_provider.dart';
+import '../../providers/ai_material_provider.dart';
+import '../../services/ai_service.dart';
+import '../../providers/pdf_text_provider.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -65,6 +67,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   fileName: result.files.single.name,
                   filePath: result.files.single.path!,
                 );
+
+                final text = await ref
+                    .read(pdfTextProvider.notifier)
+                    .loadText(session.filePath);
+
+                print("📚 Indexing ${session.fileName}");
+
+                await AiService.indexPdf(
+                  fileName: session.fileName,
+                  text: text,
+                );
+
+                print("✅ PDF indexed");
 
                 final added = ref
                     .read(recentMaterialsProvider.notifier)

@@ -2,13 +2,89 @@ import { GoogleGenAI } from "@google/genai";
 
 export default {
 	async fetch(request, env) {
+
+		const url = new URL(request.url);
+		if (request.method === "POST" && url.pathname === "/index-pdf") {
+			const body = await request.json();
+
+			const result = await env.AI.run("@cf/baai/bge-base-en-v1.5", {
+				text: body.chunks,
+			});
+
+			const vectors = body.chunks.map((chunk, index) => ({
+				id: `${body.fileName}-chunk-${index}`,
+				values: result.data[index],
+				metadata: {
+					fileName: body.fileName,
+					chunkIndex: index,
+					text: chunk,
+				},
+			}));
+
+			await env.VECTORIZE.upsert(vectors);
+
+			return Response.json({
+				success: true,
+				chunksIndexed: vectors.length,
+			});
+		}
+
+		if (request.method === "POST" && url.pathname === "/embed-test") {
+			const body = await request.json();
+
+			const result = await env.AI.run("@cf/baai/bge-base-en-v1.5", {
+				text: [body.text],
+			});
+
+			return Response.json(result);
+		}
+
+
+
+		if (request.method === "POST" && url.pathname === "/search-pdf") {
+			const body = await request.json();
+
+			const result = await env.AI.run(
+				"@cf/baai/bge-base-en-v1.5",
+				{
+					text: [body.question],
+				}
+			);
+
+			const matches = await env.VECTORIZE.query(
+				result.data[0],
+				{
+					topK: 3,
+					returnMetadata: "all",
+					filter: {
+						fileName: body.fileName,
+					},
+				}
+			);
+
+			return Response.json(matches);
+		}
+
+		// if (request.method === "POST" && url.pathname === "/vectorize-search-test") {
+		// 	const body = await request.json();
+
+		// 	const result = await env.AI.run("@cf/baai/bge-base-en-v1.5", {
+		// 		text: [body.question],
+		// 	});
+
+		// 	const matches = await env.VECTORIZE.query(result.data[0], {
+		// 		topK: 3,
+		// 		returnMetadata: "all",
+		// 	});
+
+		// 	return Response.json(matches);
+		// }
+
 		if (request.method !== "POST") {
 			return new Response("Method Not Allowed", {
 				status: 405,
 			});
 		}
-
-		const url = new URL(request.url);
 
 		try {
 			const body = await request.json();
@@ -22,19 +98,48 @@ export default {
 			// =========================
 			if (url.pathname === "/chat") {
 				const question = body.question;
-				const context = body.context ?? "";
+				const fileName = body.fileName;
 
-				if (!question) {
+				if (!question || !fileName) {
 					return Response.json(
-						{ error: "Question is required." },
+						{
+							error: "Question and fileName are required.",
+						},
 						{ status: 400 }
 					);
 				}
 
+				const embedding = await env.AI.run(
+					"@cf/baai/bge-base-en-v1.5",
+					{
+						text: [question],
+					}
+				);
+
+				const matches = await env.VECTORIZE.query(
+					embedding.data[0],
+					{
+						topK: 3,
+						returnMetadata: "all",
+						filter: {
+							fileName: fileName,
+						},
+					}
+				);
+
+				const context = matches.matches
+					.map((match) => match.metadata?.text)
+					.filter(Boolean)
+					.join("\n\n---\n\n");
+
+				console.log("🔥 RAG MATCHES:", matches.matches);
+				console.log("📚 RAG CONTEXT:", context);
+
 				const prompt = `
 You are an AI study assistant.
 
-Answer the user's question using ONLY the information contained in the provided study material.
+Answer the user's question using ONLY the information contained
+in the provided study material.
 
 Rules:
 - Do not use outside knowledge.
@@ -42,7 +147,6 @@ Rules:
   "I couldn't find the answer in the provided study material."
 - Be clear and concise.
 - Explain the answer in a way that helps the student understand it.
-- At every end of your respond add this a_c put this at the very bottom right. 
 
 DOCUMENT SECTION:
 ${context}
@@ -60,7 +164,6 @@ ${question}
 					answer: response.text,
 				});
 			}
-
 			// =========================
 			// QUIZ
 			// =========================

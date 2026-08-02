@@ -1,4 +1,3 @@
-
 import '../../models/question.dart';
 import '../../models/flashcard.dart';
 import '../../models/flashcarddeck.dart';
@@ -6,6 +5,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class AiService {
+  //Quiz
 
   static Future<List<Question>> generateQuiz(String text) async {
     final chunks = splitIntoChunks(text);
@@ -83,6 +83,7 @@ class AiService {
     return summaries.join("\n\n");
   }
 
+  //Summary
   static Future<String> summarizeChunk(String chunk) async {
     print("GENERATING SUMMARY CHUNK");
 
@@ -103,6 +104,7 @@ class AiService {
     return data['summary'] as String;
   }
 
+  //Flashcards
   static Future<FlashcardDeck> generateFlashcards(
     String fileName,
     String text,
@@ -137,31 +139,19 @@ class AiService {
     return FlashcardDeck(fileName: fileName, flashcards: flashcards);
   }
 
+  //Chat
   static Future<String> askAboutPdf({
-    required String pdfText,
+    required String fileName,
     required String question,
   }) async {
     print("🔥 askAboutPdf() WAS CALLED");
-    final chunks = splitIntoChunks(pdfText);
-
-    final scoredChunks = findRelevantChunks(chunks, question);
-
-    print("Total chunks: ${chunks.length}");
-
-    final relevantChunks =
-        scoredChunks.take(3).map((item) => item['chunk'] as String).toList();
-
-    final context = relevantChunks.join("\n\n---\n\n");
-
-    print("SENDING CHAT REQUEST TO WORKER");
-    print("Question: $question");
-    print("Context length: ${context.length}");
 
     final response = await http.post(
-      Uri.parse('http://192.168.5.31:8787/chat'),
+      Uri.parse('https://backend.regeryl1100.workers.dev/chat'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'question': question, 'context': context}),
+      body: jsonEncode({'fileName': fileName, 'question': question}),
     );
+
     if (response.statusCode != 200) {
       throw Exception(response.body);
     }
@@ -171,37 +161,20 @@ class AiService {
     return data['answer'] as String;
   }
 
-  static List<Map<String, dynamic>> findRelevantChunks(
-    List<String> chunks,
-    String question,
-  ) {
-    final words =
-        question
-            .toLowerCase()
-            .split(RegExp(r'\s+'))
-            .where((word) => word.length > 3)
-            .toList();
+  static Future<void> indexPdf({
+    required String fileName,
+    required String text,
+  }) async {
+    final chunks = splitIntoChunks(text);
 
-    final scoredChunks = <Map<String, dynamic>>[];
-
-    for (final chunk in chunks) {
-      final lowerChunk = chunk.toLowerCase();
-
-      int score = 0;
-
-      for (final word in words) {
-        if (lowerChunk.contains(word)) {
-          score++;
-        }
-      }
-
-      scoredChunks.add({'chunk': chunk, 'score': score});
-    }
-
-    scoredChunks.sort(
-      (a, b) => (b['score'] as int).compareTo(a['score'] as int),
+    final response = await http.post(
+      Uri.parse('https://backend.regeryl1100.workers.dev/index-pdf'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'fileName': fileName, 'chunks': chunks}),
     );
 
-    return scoredChunks;
+    if (response.statusCode != 200) {
+      throw Exception(response.body);
+    }
   }
 }

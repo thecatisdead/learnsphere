@@ -67,12 +67,12 @@ class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
     scrollToBottom();
 
     try {
-      final pdfText = await ref
-          .read(pdfTextProvider.notifier)
-          .loadText(session.filePath);
-
-      await askAi(question: question, pdfText: pdfText);
+      await askAi(question: question, fileName: session.fileName);
     } finally {
+      if (!mounted) {
+        return;
+      }
+
       setState(() {
         isLoading = false;
       });
@@ -83,14 +83,17 @@ class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
 
   Future<void> askAi({
     required String question,
-    required String pdfText,
+    required String fileName,
   }) async {
     print("🔥 ASK AI CALLED");
+
     try {
       final answer = await AiService.askAboutPdf(
-        pdfText: pdfText,
+        fileName: fileName,
         question: question,
       );
+
+      if (!mounted) return;
 
       setState(() {
         messages.add(ChatMessage(text: answer, isUser: false));
@@ -98,6 +101,8 @@ class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
 
       scrollToBottom();
     } catch (e) {
+      if (!mounted) return;
+
       setState(() {
         messages.add(
           const ChatMessage(
