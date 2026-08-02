@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/quiz.dart';
 
-
 class QuizNotifier extends Notifier<Map<String, Quiz>> {
   @override
   Map<String, Quiz> build() {
@@ -9,10 +8,7 @@ class QuizNotifier extends Notifier<Map<String, Quiz>> {
   }
 
   void setQuiz(String filePath, Quiz quiz) {
-    state = {
-      ...state,
-      filePath: quiz,
-    };
+    state = {...state, filePath: quiz};
   }
 
   Quiz? getQuiz(String filePath) {
@@ -30,7 +26,6 @@ class QuizNotifier extends Notifier<Map<String, Quiz>> {
   }
 }
 
-final quizProvider =
-    NotifierProvider<QuizNotifier, Map<String, Quiz>>(
+final quizProvider = NotifierProvider<QuizNotifier, Map<String, Quiz>>(
   QuizNotifier.new,
 );

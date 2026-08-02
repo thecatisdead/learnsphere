@@ -42,6 +42,8 @@ class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
   List<ChatMessage> messages = [];
 
   Future<void> sendMessage() async {
+    print("🔥 SEND MESSAGE CALLED");
+
     final question = controller.text;
 
     if (question.trim().isEmpty || isLoading) {
@@ -83,6 +85,7 @@ class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
     required String question,
     required String pdfText,
   }) async {
+    print("🔥 ASK AI CALLED");
     try {
       final answer = await AiService.askAboutPdf(
         pdfText: pdfText,
@@ -109,14 +112,14 @@ class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    @override
-    void dispose() {
-      controller.dispose();
-      scrollController.dispose();
-      super.dispose();
-    }
+  void dispose() {
+    controller.dispose();
+    scrollController.dispose();
+    super.dispose();
+  }
 
+  @override
+  Widget build(BuildContext context) {
     final session = ref.watch(studySessionProvider);
 
     if (session == null) {

@@ -1,20 +1,16 @@
-import 'package:google_generative_ai/google_generative_ai.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 import '../../models/question.dart';
 import '../../models/flashcard.dart';
 import '../../models/flashcarddeck.dart';
 import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class AiService {
-  static final model = GenerativeModel(
-    model: "gemini-3.5-flash-lite",
-    apiKey: dotenv.env['GEMINI_API_KEY']!,
-  );
+
   static Future<List<Question>> generateQuiz(String text) async {
     final chunks = splitIntoChunks(text);
 
     final totalQuestions = 10;
-
     final chunkCount = chunks.length;
 
     final questionsPerChunk = totalQuestions ~/ chunkCount;
@@ -30,51 +26,28 @@ class AiService {
         remainingQuestions--;
       }
 
-      final prompt = """
+      print("GENERATING QUIZ CHUNK");
+      print("Questions: $questionsForThisChunk");
+      print("Chunk length: ${chunk.length}");
 
-You are an AI that generates study quizzes.
+      final response = await http.post(
+        Uri.parse('http://192.168.5.31:8787/quiz'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'chunk': chunk,
+          'questionsForThisChunk': questionsForThisChunk,
+        }),
+      );
 
-Based on the following document, generate exactly $questionsForThisChunk multiple-choice questions.
+      if (response.statusCode != 200) {
+        throw Exception(response.body);
+      }
 
-Rules:
-- Return ONLY valid JSON.
-- Do NOT use markdown.
-- Do NOT explain anything.
-- Each question must have exactly 4 options.
-- Only one option is correct.
-- The correctAnswer must exactly match one option.
+      final data = jsonDecode(response.body);
 
-Return this format:
+      final decoded = data['questions'] as List<dynamic>;
 
-[
-  {
-    "question": "...",
-    "options": [
-      "...",
-      "...",
-      "...",
-      "..."
-    ],
-    "correctAnswer": "..."
-  }
-]
-
-Document:
-
-$chunk
-""";
-
-      final response = await model.generateContent([Content.text(prompt)]);
-
-      final responseText = response.text ?? "";
-
-      print(responseText);
-
-      print(responseText.substring(0, 300));
-      print("...");
-      print(responseText.substring(responseText.length - 300));
-      final decoded = jsonDecode(response.text!) as List<dynamic>;
-      final List<Question> chunkQuestions =
+      final chunkQuestions =
           decoded
               .map((q) => Question.fromJson(q as Map<String, dynamic>))
               .toList();
@@ -111,68 +84,48 @@ $chunk
   }
 
   static Future<String> summarizeChunk(String chunk) async {
-    final prompt = """
-You are an expert study assistant.
+    print("GENERATING SUMMARY CHUNK");
 
-Summarize the following study material into concise bullet points.
+    print("Chunk length: ${chunk.length}");
 
-$chunk
-""";
+    final response = await http.post(
+      Uri.parse('http://192.168.5.31:8787/summary'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'context': chunk}),
+    );
 
-    for (int attempt = 1; attempt <= 3; attempt++) {
-      try {
-        final response = await model.generateContent([Content.text(prompt)]);
-
-        return response.text ?? "";
-      } catch (e) {
-        if (attempt == 3) rethrow;
-
-        await Future.delayed(const Duration(seconds: 2));
-      }
+    if (response.statusCode != 200) {
+      throw Exception(response.body);
     }
 
-    final response = await model.generateContent([Content.text(prompt)]);
+    final data = jsonDecode(response.body);
 
-    return response.text ?? "";
+    return data['summary'] as String;
   }
 
   static Future<FlashcardDeck> generateFlashcards(
     String fileName,
     String text,
   ) async {
+    print("GENERATING FLASHCARDS CHUNK");
+
     final chunks = splitIntoChunks(text);
     final List<Flashcard> flashcards = [];
 
     for (final chunk in chunks) {
-      final prompt = """ You are an AI that creates study flashcards.
+      final response = await http.post(
+        Uri.parse('http://192.168.5.31:8787/flashcards'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'context': chunk}),
+      );
 
-Based on the following study material, generate flashcards for the most important concepts.
+      if (response.statusCode != 200) {
+        throw Exception(response.body);
+      }
 
-Rules:
-- Return ONLY valid JSON.
-- Do NOT use markdown.
-- Do NOT explain anything.
-- Each flashcard must have:
-  - "front"
-  - "back"
-- Keep the front short.
-- Keep the back clear and concise.
+      final data = jsonDecode(response.body);
 
-Return this format:
-
-[
-  {
-    "front": "...",
-    "back": "..."
-  }
-]
-
-Document:
-
-$chunk """;
-
-      final response = await model.generateContent([Content.text(prompt)]);
-      final decoded = jsonDecode(response.text!) as List<dynamic>;
+      final decoded = data['flashcards'] as List<dynamic>;
       final List<Flashcard> chunkFlashcards =
           decoded
               .map((q) => Flashcard.fromJson(q as Map<String, dynamic>))
@@ -188,27 +141,67 @@ $chunk """;
     required String pdfText,
     required String question,
   }) async {
-    final prompt = """
-You are an AI study assistant.
+    print("🔥 askAboutPdf() WAS CALLED");
+    final chunks = splitIntoChunks(pdfText);
 
-Answer the user's question using ONLY the information contained in the document below.
+    final scoredChunks = findRelevantChunks(chunks, question);
 
-Rules:
-- Do not use outside knowledge.
-- If the answer cannot be found in the document, say:
-  "I couldn't find the answer in this PDF."
-- Be clear and concise.
-- Explain the answer in a way that helps the student understand it.
+    print("Total chunks: ${chunks.length}");
 
-DOCUMENT:
-$pdfText
+    final relevantChunks =
+        scoredChunks.take(3).map((item) => item['chunk'] as String).toList();
 
-USER QUESTION:
-$question
-""";
+    final context = relevantChunks.join("\n\n---\n\n");
 
-    final response = await model.generateContent([Content.text(prompt)]);
+    print("SENDING CHAT REQUEST TO WORKER");
+    print("Question: $question");
+    print("Context length: ${context.length}");
 
-    return response.text ?? "I couldn't generate an answer.";
+    final response = await http.post(
+      Uri.parse('http://192.168.5.31:8787/chat'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'question': question, 'context': context}),
+    );
+    if (response.statusCode != 200) {
+      throw Exception(response.body);
+    }
+
+    final data = jsonDecode(response.body);
+
+    return data['answer'] as String;
+  }
+
+  static List<Map<String, dynamic>> findRelevantChunks(
+    List<String> chunks,
+    String question,
+  ) {
+    final words =
+        question
+            .toLowerCase()
+            .split(RegExp(r'\s+'))
+            .where((word) => word.length > 3)
+            .toList();
+
+    final scoredChunks = <Map<String, dynamic>>[];
+
+    for (final chunk in chunks) {
+      final lowerChunk = chunk.toLowerCase();
+
+      int score = 0;
+
+      for (final word in words) {
+        if (lowerChunk.contains(word)) {
+          score++;
+        }
+      }
+
+      scoredChunks.add({'chunk': chunk, 'score': score});
+    }
+
+    scoredChunks.sort(
+      (a, b) => (b['score'] as int).compareTo(a['score'] as int),
+    );
+
+    return scoredChunks;
   }
 }
