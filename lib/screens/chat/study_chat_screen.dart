@@ -6,22 +6,58 @@ import '../../providers/study_session_provider.dart';
 import '../../providers/ai_loading_provider.dart';
 import 'package:learnsphere/services/ai_service.dart';
 import '../../shared/widgets/loadingdots_widget.dart';
+import '../../models/chat_session.dart';
+import '../../providers/chat_session_provider.dart';
 
 class StudyChatScreen extends ConsumerStatefulWidget {
   final String fileName;
   final String filePath;
+  final String chatId;
 
   const StudyChatScreen({
     super.key,
     required this.fileName,
     required this.filePath,
+    required this.chatId,
   });
-
   @override
   ConsumerState<StudyChatScreen> createState() => _StudyChatScreenState();
 }
 
 class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
+  late String selectedChatId;
+
+  ChatSession get currentChatSession {
+    final chats = ref.read(chatSessionsProvider);
+
+    return chats.firstWhere((chat) => chat.id == selectedChatId);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    selectedChatId = widget.chatId;
+  }
+
+  void createNewChat() {
+    final session = ref.read(studySessionProvider);
+
+    if (session == null) {
+      return;
+    }
+
+    ref
+        .read(chatSessionsProvider.notifier)
+        .createChat(fileName: session.fileName, filePath: session.filePath);
+
+    final chats = ref.read(chatSessionsProvider);
+
+    setState(() {
+      selectedChatId = chats.last.id;
+    });
+  }
+
   void scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!scrollController.hasClients) {
@@ -39,7 +75,6 @@ class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
   bool isLoading = false;
   final TextEditingController controller = TextEditingController();
   final ScrollController scrollController = ScrollController();
-  List<ChatMessage> messages = [];
 
   Future<void> sendMessage() async {
     print("🔥 SEND MESSAGE CALLED");
@@ -56,12 +91,16 @@ class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
       return;
     }
 
-    setState(() {
-      messages.add(ChatMessage(text: question, isUser: true));
+    ref
+        .read(chatSessionsProvider.notifier)
+        .addMessage(
+          chatId: selectedChatId,
+          message: ChatMessage(text: question, isUser: true),
+        );
 
+    setState(() {
       isLoading = true;
     });
-
     controller.clear();
 
     scrollToBottom();
@@ -85,7 +124,7 @@ class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
     required String question,
     required String fileName,
   }) async {
-    print("🔥 ASK AI CALLED");
+    print("ASK AI CALLED");
 
     try {
       final answer = await AiService.askAboutPdf(
@@ -95,22 +134,18 @@ class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
 
       if (!mounted) return;
 
-      setState(() {
-        messages.add(ChatMessage(text: answer, isUser: false));
-      });
+      ref
+          .read(chatSessionsProvider.notifier)
+          .addMessage(
+            chatId: selectedChatId,
+            message: ChatMessage(text: answer, isUser: false),
+          );
+
+      setState(() {});
 
       scrollToBottom();
     } catch (e) {
       if (!mounted) return;
-
-      setState(() {
-        messages.add(
-          const ChatMessage(
-            text: "Sorry, I couldn't generate a response.",
-            isUser: false,
-          ),
-        );
-      });
 
       print("AI error: $e");
     }
@@ -126,10 +161,20 @@ class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
   @override
   Widget build(BuildContext context) {
     final session = ref.watch(studySessionProvider);
+    final chats = ref.watch(chatSessionsProvider);
+
+    print("CHAT COUNT: ${chats.length}");
+
+    for (final chat in chats) {
+      print("CHAT: ${chat.id} | MESSAGES: ${chat.messages.length}");
+    }
 
     if (session == null) {
       return const Scaffold(body: Center(child: Text("No PDF selected.")));
     }
+
+    print("CURRENT CHAT ID: ${currentChatSession.id}");
+    print("CURRENT CHAT TITLE: ${currentChatSession.title}");
 
     // final pdfText = ref
     //     .read(pdfTextProvider.notifier)
@@ -138,16 +183,66 @@ class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
     // print(pdfText == null ? "PDF text is not cached" : "PDF text is cached");
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Ask AI")),
+      appBar: AppBar(
+        title: const Text("Ask AI"),
+        actions: [
+          IconButton(onPressed: createNewChat, icon: const Icon(Icons.add)),
+        ],
+      ),
+
+      drawer: Drawer(
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text(
+                  "Recents",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
+
+              const Divider(),
+
+              Expanded(
+                child: ListView.builder(
+                  itemCount: ref.watch(chatSessionsProvider).length,
+                  itemBuilder: (context, index) {
+                    final chats = ref.watch(chatSessionsProvider);
+                    final chat = chats[index];
+
+                    return ListTile(
+                      title: Text(chat.title),
+                      subtitle: Text("${chat.messages.length} messages"),
+                      selected: chat.id == selectedChatId,
+                      onTap: () {
+                        setState(() {
+                          selectedChatId = chat.id;
+                        });
+
+                        Navigator.pop(context);
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+
       body: Column(
         children: [
           Expanded(
             child: ListView.builder(
               controller: scrollController,
               padding: const EdgeInsets.all(16),
-              itemCount: messages.length + (isLoading ? 1 : 0),
+
+              itemCount:
+                  currentChatSession.messages.length + (isLoading ? 1 : 0),
               itemBuilder: (context, index) {
-                if (index == messages.length && isLoading) {
+                if (index == currentChatSession.messages.length && isLoading) {
                   return Align(
                     alignment: Alignment.centerLeft,
                     child: Container(
@@ -166,7 +261,7 @@ class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
                 }
                 return Align(
                   alignment:
-                      messages[index].isUser
+                      currentChatSession.messages[index].isUser
                           ? Alignment.centerRight
                           : Alignment.centerLeft,
                   child: Container(
@@ -175,15 +270,15 @@ class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
                       color:
-                          messages[index].isUser
+                          currentChatSession.messages[index].isUser
                               ? Colors.blue
                               : Colors.grey.shade200,
                     ),
                     child: Text(
-                      messages[index].text,
+                      currentChatSession.messages[index].text,
                       style: TextStyle(
                         color:
-                            messages[index].isUser
+                            currentChatSession.messages[index].isUser
                                 ? Colors.white
                                 : Colors.black,
                       ),

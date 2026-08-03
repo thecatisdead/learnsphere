@@ -10,6 +10,7 @@ import '/../screens/quiz/quiz_screen.dart';
 import '/../screens/flashcard/flashcard_screen.dart';
 import '../../providers/ai_material_provider.dart';
 import 'package:learnsphere/screens/chat/study_chat_screen.dart';
+import '../../providers/chat_session_provider.dart';
 
 class StudyMaterialScreen extends ConsumerWidget {
   const StudyMaterialScreen({super.key});
@@ -17,6 +18,10 @@ class StudyMaterialScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(studySessionProvider);
+
+    if (session == null) {
+      return const Scaffold(body: Center(child: Text("No PDF selected.")));
+    }
 
     final aiState = ref.watch(aiLoadingProvider);
     final aiMaterials = ref.watch(aiMaterialProvider);
@@ -386,7 +391,15 @@ class StudyMaterialScreen extends ConsumerWidget {
 
             ElevatedButton(
               onPressed: () {
-                if (session == null) return;
+                ref
+                    .read(chatSessionsProvider.notifier)
+                    .createChat(
+                      fileName: session.fileName,
+                      filePath: session.filePath,
+                    );
+
+                final chats = ref.read(chatSessionsProvider);
+                final chat = chats.last;
 
                 Navigator.push(
                   context,
@@ -395,6 +408,7 @@ class StudyMaterialScreen extends ConsumerWidget {
                         (_) => StudyChatScreen(
                           fileName: session.fileName,
                           filePath: session.filePath,
+                          chatId: chat.id,
                         ),
                   ),
                 );

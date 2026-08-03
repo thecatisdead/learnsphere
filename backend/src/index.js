@@ -65,21 +65,6 @@ export default {
 			return Response.json(matches);
 		}
 
-		// if (request.method === "POST" && url.pathname === "/vectorize-search-test") {
-		// 	const body = await request.json();
-
-		// 	const result = await env.AI.run("@cf/baai/bge-base-en-v1.5", {
-		// 		text: [body.question],
-		// 	});
-
-		// 	const matches = await env.VECTORIZE.query(result.data[0], {
-		// 		topK: 3,
-		// 		returnMetadata: "all",
-		// 	});
-
-		// 	return Response.json(matches);
-		// }
-
 		if (request.method !== "POST") {
 			return new Response("Method Not Allowed", {
 				status: 405,
