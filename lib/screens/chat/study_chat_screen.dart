@@ -9,6 +9,9 @@ import '../../shared/widgets/loadingdots_widget.dart';
 import '../../models/chat_session.dart';
 import '../../providers/chat_session_provider.dart';
 
+import 'package:learnsphere/database/chat_repository.dart';
+import 'package:learnsphere/database/database_provider.dart';
+
 class StudyChatScreen extends ConsumerStatefulWidget {
   final String fileName;
   final String filePath;
@@ -40,22 +43,24 @@ class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
     selectedChatId = widget.chatId;
   }
 
-  void createNewChat() {
+  Future<void> createNewChat() async {
     final session = ref.read(studySessionProvider);
 
     if (session == null) {
       return;
     }
 
-    ref
+    final newChatId = await ref
         .read(chatSessionsProvider.notifier)
         .createChat(fileName: session.fileName, filePath: session.filePath);
 
-    final chats = ref.read(chatSessionsProvider);
+    if (!mounted) return;
 
     setState(() {
-      selectedChatId = chats.last.id;
+      selectedChatId = newChatId;
     });
+
+    print("🆕 NEW CHAT CREATED: $newChatId");
   }
 
   void scrollToBottom() {
@@ -91,12 +96,23 @@ class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
       return;
     }
 
+    final message = ChatMessage(
+      text: question,
+      isUser: true,
+      createdAt: DateTime.now(),
+    );
+
     ref
         .read(chatSessionsProvider.notifier)
-        .addMessage(
-          chatId: selectedChatId,
-          message: ChatMessage(text: question, isUser: true),
-        );
+        .addMessage(chatId: selectedChatId, message: message);
+
+    final repository = ChatRepository(ref.read(databaseProvider));
+
+    await repository.saveMessage(
+      chatId: selectedChatId,
+      text: question,
+      isUser: true,
+    );
 
     setState(() {
       isLoading = true;
@@ -134,12 +150,30 @@ class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
 
       if (!mounted) return;
 
+      final message = ChatMessage(
+        text: answer,
+        isUser: false,
+        createdAt: DateTime.now(),
+      );
+
       ref
           .read(chatSessionsProvider.notifier)
-          .addMessage(
-            chatId: selectedChatId,
-            message: ChatMessage(text: answer, isUser: false),
-          );
+          .addMessage(chatId: selectedChatId, message: message);
+
+      final repository = ChatRepository(ref.read(databaseProvider));
+
+      await repository.saveMessage(
+        chatId: selectedChatId,
+        text: answer,
+        isUser: false,
+      );
+      final savedMessages = await repository.getMessages(selectedChatId);
+
+      for (final message in savedMessages) {
+        print(
+          '💾 SQLITE: ${message.chatId} | ${message.messageText} | isUser=${message.isUser}',
+        );
+      }
 
       setState(() {});
 
@@ -206,22 +240,29 @@ class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
               const Divider(),
 
               Expanded(
-                child: ListView.builder(
-                  itemCount: ref.watch(chatSessionsProvider).length,
-                  itemBuilder: (context, index) {
-                    final chats = ref.watch(chatSessionsProvider);
-                    final chat = chats[index];
+                child: Builder(
+                  builder: (context) {
+                    final chats = ref
+                        .watch(chatSessionsProvider.notifier)
+                        .getChatsForFile(session.fileName);
 
-                    return ListTile(
-                      title: Text(chat.title),
-                      subtitle: Text("${chat.messages.length} messages"),
-                      selected: chat.id == selectedChatId,
-                      onTap: () {
-                        setState(() {
-                          selectedChatId = chat.id;
-                        });
+                    return ListView.builder(
+                      itemCount: chats.length,
+                      itemBuilder: (context, index) {
+                        final chat = chats[index];
 
-                        Navigator.pop(context);
+                        return ListTile(
+                          title: Text(chat.title),
+                          subtitle: Text("${chat.messages.length} messages"),
+                          selected: chat.id == selectedChatId,
+                          onTap: () {
+                            setState(() {
+                              selectedChatId = chat.id;
+                            });
+
+                            Navigator.pop(context);
+                          },
+                        );
                       },
                     );
                   },

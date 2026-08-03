@@ -394,6 +394,7 @@ class StudyMaterialScreen extends ConsumerWidget {
                 ref
                     .read(chatSessionsProvider.notifier)
                     .createChat(
+           
                       fileName: session.fileName,
                       filePath: session.filePath,
                     );

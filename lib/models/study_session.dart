@@ -1,6 +1,11 @@
 class StudySession {
+  final String chatId;
   final String fileName;
   final String filePath;
 
-  const StudySession({required this.fileName, required this.filePath});
+  StudySession({
+    required this.chatId,
+    required this.fileName,
+    required this.filePath,
+  });
 }

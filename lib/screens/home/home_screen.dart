@@ -14,6 +14,11 @@ import '../../providers/recent_materials_provider.dart';
 import '../../providers/ai_material_provider.dart';
 import '../../services/ai_service.dart';
 import '../../providers/pdf_text_provider.dart';
+import 'package:uuid/uuid.dart';
+
+import '../../database/database_provider.dart';
+import '../../database/chat_repository.dart';
+import 'package:learnsphere/providers/chat_session_provider.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -63,10 +68,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               );
 
               if (result != null) {
+                final fileName = result.files.single.name;
+                final filePath = result.files.single.path!;
+
+                final chatId = await ref
+                    .read(chatSessionsProvider.notifier)
+                    .createChat(fileName: fileName, filePath: filePath);
+
                 final session = StudySession(
-                  fileName: result.files.single.name,
-                  filePath: result.files.single.path!,
+                  chatId: chatId,
+                  fileName: fileName,
+                  filePath: filePath,
                 );
+
+                print("🆕 CHAT CREATED: $chatId");
 
                 final text = await ref
                     .read(pdfTextProvider.notifier)
