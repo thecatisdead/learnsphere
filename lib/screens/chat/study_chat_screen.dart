@@ -52,8 +52,7 @@ class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
 
     final newChatId = await ref
         .read(chatSessionsProvider.notifier)
-        .createChat(fileName: session.fileName, filePath: session.filePath);
-
+        .createChat(documentId: session.documentId);
     if (!mounted) return;
 
     setState(() {
@@ -84,9 +83,9 @@ class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
   Future<void> sendMessage() async {
     print("🔥 SEND MESSAGE CALLED");
 
-    final question = controller.text;
+    final question = controller.text.trim();
 
-    if (question.trim().isEmpty || isLoading) {
+    if (question.isEmpty || isLoading) {
       return;
     }
 
@@ -96,27 +95,38 @@ class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
       return;
     }
 
-    final message = ChatMessage(
+    final userMessage = ChatMessage(
       text: question,
       isUser: true,
       createdAt: DateTime.now(),
     );
 
+    // Add message to Riverpod state.
     ref
         .read(chatSessionsProvider.notifier)
-        .addMessage(chatId: selectedChatId, message: message);
+        .addMessage(chatId: selectedChatId, message: userMessage);
+
+    // Get the updated chat after addMessage().
+    final updatedChat = currentChatSession;
 
     final repository = ChatRepository(ref.read(databaseProvider));
+
+    // First user message becomes the chat title.
+    final shouldSetTitle = updatedChat.messages.length == 1;
 
     await repository.saveMessage(
       chatId: selectedChatId,
       text: question,
       isUser: true,
+      title: shouldSetTitle ? question : null,
     );
+
+    if (!mounted) return;
 
     setState(() {
       isLoading = true;
     });
+
     controller.clear();
 
     scrollToBottom();
@@ -143,25 +153,26 @@ class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
     print("ASK AI CALLED");
 
     try {
+      final stopwatch = Stopwatch()..start();
+
       final answer = await AiService.askAboutPdf(
         fileName: fileName,
         question: question,
       );
 
+      print("🤖 AI RESPONSE TIME: ${stopwatch.elapsedMilliseconds}ms");
+
       if (!mounted) return;
 
-      final message = ChatMessage(
+      final aiMessage = ChatMessage(
         text: answer,
         isUser: false,
         createdAt: DateTime.now(),
       );
-
       ref
           .read(chatSessionsProvider.notifier)
-          .addMessage(chatId: selectedChatId, message: message);
-
+          .addMessage(chatId: selectedChatId, message: aiMessage);
       final repository = ChatRepository(ref.read(databaseProvider));
-
       await repository.saveMessage(
         chatId: selectedChatId,
         text: answer,
@@ -195,74 +206,90 @@ class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
   @override
   Widget build(BuildContext context) {
     final session = ref.watch(studySessionProvider);
-    final chats = ref.watch(chatSessionsProvider);
-
-    print("CHAT COUNT: ${chats.length}");
-
-    for (final chat in chats) {
-      print("CHAT: ${chat.id} | MESSAGES: ${chat.messages.length}");
-    }
+    final allChats = ref.watch(chatSessionsProvider);
 
     if (session == null) {
       return const Scaffold(body: Center(child: Text("No PDF selected.")));
+    }
+    final chats =
+        allChats
+            .where((chat) => chat.documentId == session.documentId)
+            .toList();
+
+    print("ALL CHAT COUNT: ${allChats.length}");
+    print("CURRENT PDF: ${session.fileName}");
+    print("CURRENT PDF CHAT COUNT: ${chats.length}");
+
+    for (final chat in chats) {
+      print(
+        "CHAT: ${chat.id} | ${chat.title} | MESSAGES: ${chat.messages.length}",
+      );
     }
 
     print("CURRENT CHAT ID: ${currentChatSession.id}");
     print("CURRENT CHAT TITLE: ${currentChatSession.title}");
 
-    // final pdfText = ref
-    //     .read(pdfTextProvider.notifier)
-    //     .getText(session.filePath);
-
-    // print(pdfText == null ? "PDF text is not cached" : "PDF text is cached");
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Ask AI"),
-        actions: [
-          IconButton(onPressed: createNewChat, icon: const Icon(Icons.add)),
-        ],
-      ),
+      appBar: AppBar(title: const Text("Ask AI")),
 
       drawer: Drawer(
         child: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Padding(
-                padding: EdgeInsets.all(16),
-                child: Text(
-                  "Recents",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: Row(
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        "Recents",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+
+                    // New Chat button
+                    IconButton(
+                      onPressed:
+                          currentChatSession.messages.any(
+                                (message) => message.isUser,
+                              )
+                              ? createNewChat
+                              : null,
+                      icon: const Icon(Icons.add),
+                      tooltip: "New Chat",
+                    ),
+                  ],
                 ),
               ),
 
               const Divider(),
 
               Expanded(
-                child: Builder(
-                  builder: (context) {
-                    final chats = ref
-                        .watch(chatSessionsProvider.notifier)
-                        .getChatsForFile(session.fileName);
+                child: ListView.builder(
+                  itemCount: chats.length,
+                  itemBuilder: (context, index) {
+                    final chat = chats[index];
 
-                    return ListView.builder(
-                      itemCount: chats.length,
-                      itemBuilder: (context, index) {
-                        final chat = chats[index];
+                    return ListTile(
+                      title: Text(chat.title),
+                      subtitle: Text("${chat.messages.length} messages"),
+                      selected: chat.id == selectedChatId,
+                      onTap: () async {
+                        await ref
+                            .read(chatSessionsProvider.notifier)
+                            .loadChat(chat.id);
 
-                        return ListTile(
-                          title: Text(chat.title),
-                          subtitle: Text("${chat.messages.length} messages"),
-                          selected: chat.id == selectedChatId,
-                          onTap: () {
-                            setState(() {
-                              selectedChatId = chat.id;
-                            });
+                        if (!mounted) return;
 
-                            Navigator.pop(context);
-                          },
-                        );
+                        setState(() {
+                          selectedChatId = chat.id;
+                        });
+
+                        Navigator.pop(context);
                       },
                     );
                   },

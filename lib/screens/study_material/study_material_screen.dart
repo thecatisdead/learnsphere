@@ -11,6 +11,9 @@ import '/../screens/flashcard/flashcard_screen.dart';
 import '../../providers/ai_material_provider.dart';
 import 'package:learnsphere/screens/chat/study_chat_screen.dart';
 import '../../providers/chat_session_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../database/database_provider.dart';
+import '../../database/chat_repository.dart';
 
 class StudyMaterialScreen extends ConsumerWidget {
   const StudyMaterialScreen({super.key});
@@ -385,23 +388,26 @@ class StudyMaterialScreen extends ConsumerWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 12),
 
             const SizedBox(height: 12),
-
             ElevatedButton(
-              onPressed: () {
-                ref
-                    .read(chatSessionsProvider.notifier)
-                    .createChat(
-           
-                      fileName: session.fileName,
-                      filePath: session.filePath,
-                    );
-
-                final chats = ref.read(chatSessionsProvider);
-                final chat = chats.last;
-
+              onPressed: () async {
+                final repository = ChatRepository(ref.read(databaseProvider));
+                final latestChat = await repository.getLatestChatForDocument(
+                  session.documentId,
+                );
+                String chatId;
+                if (latestChat == null) {
+                  chatId = await ref
+                      .read(chatSessionsProvider.notifier)
+                      .createChat(documentId: session.documentId);
+                } else {
+                  chatId = latestChat.id;
+                  await ref
+                      .read(chatSessionsProvider.notifier)
+                      .loadChat(chatId);
+                }
+                if (!context.mounted) return;
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -409,7 +415,7 @@ class StudyMaterialScreen extends ConsumerWidget {
                         (_) => StudyChatScreen(
                           fileName: session.fileName,
                           filePath: session.filePath,
-                          chatId: chat.id,
+                          chatId: chatId,
                         ),
                   ),
                 );

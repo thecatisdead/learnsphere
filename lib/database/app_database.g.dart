@@ -3,12 +3,12 @@
 part of 'app_database.dart';
 
 // ignore_for_file: type=lint
-class $ChatSessionsTable extends ChatSessions
-    with TableInfo<$ChatSessionsTable, ChatSession> {
+class $DocumentsTable extends Documents
+    with TableInfo<$DocumentsTable, Document> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $ChatSessionsTable(this.attachedDatabase, [this._alias]);
+  $DocumentsTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
@@ -40,25 +40,57 @@ class $ChatSessionsTable extends ChatSessions
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  static const VerificationMeta _contentHashMeta = const VerificationMeta(
+    'contentHash',
+  );
   @override
-  late final GeneratedColumn<String> title = GeneratedColumn<String>(
-    'title',
+  late final GeneratedColumn<String> contentHash = GeneratedColumn<String>(
+    'content_hash',
     aliasedName,
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
   );
   @override
-  List<GeneratedColumn> get $columns => [id, fileName, filePath, title];
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    fileName,
+    filePath,
+    contentHash,
+    createdAt,
+    updatedAt,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'chat_sessions';
+  static const String $name = 'documents';
   @override
   VerificationContext validateIntegrity(
-    Insertable<ChatSession> instance, {
+    Insertable<Document> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -84,13 +116,32 @@ class $ChatSessionsTable extends ChatSessions
     } else if (isInserting) {
       context.missing(_filePathMeta);
     }
-    if (data.containsKey('title')) {
+    if (data.containsKey('content_hash')) {
       context.handle(
-        _titleMeta,
-        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+        _contentHashMeta,
+        contentHash.isAcceptableOrUnknown(
+          data['content_hash']!,
+          _contentHashMeta,
+        ),
       );
     } else if (isInserting) {
-      context.missing(_titleMeta);
+      context.missing(_contentHashMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
     }
     return context;
   }
@@ -98,9 +149,9 @@ class $ChatSessionsTable extends ChatSessions
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  ChatSession map(Map<String, dynamic> data, {String? tablePrefix}) {
+  Document map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return ChatSession(
+    return Document(
       id:
           attachedDatabase.typeMapping.read(
             DriftSqlType.string,
@@ -116,30 +167,44 @@ class $ChatSessionsTable extends ChatSessions
             DriftSqlType.string,
             data['${effectivePrefix}file_path'],
           )!,
-      title:
+      contentHash:
           attachedDatabase.typeMapping.read(
             DriftSqlType.string,
-            data['${effectivePrefix}title'],
+            data['${effectivePrefix}content_hash'],
+          )!,
+      createdAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}created_at'],
+          )!,
+      updatedAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}updated_at'],
           )!,
     );
   }
 
   @override
-  $ChatSessionsTable createAlias(String alias) {
-    return $ChatSessionsTable(attachedDatabase, alias);
+  $DocumentsTable createAlias(String alias) {
+    return $DocumentsTable(attachedDatabase, alias);
   }
 }
 
-class ChatSession extends DataClass implements Insertable<ChatSession> {
+class Document extends DataClass implements Insertable<Document> {
   final String id;
   final String fileName;
   final String filePath;
-  final String title;
-  const ChatSession({
+  final String contentHash;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const Document({
     required this.id,
     required this.fileName,
     required this.filePath,
-    required this.title,
+    required this.contentHash,
+    required this.createdAt,
+    required this.updatedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -147,29 +212,35 @@ class ChatSession extends DataClass implements Insertable<ChatSession> {
     map['id'] = Variable<String>(id);
     map['file_name'] = Variable<String>(fileName);
     map['file_path'] = Variable<String>(filePath);
-    map['title'] = Variable<String>(title);
+    map['content_hash'] = Variable<String>(contentHash);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
 
-  ChatSessionsCompanion toCompanion(bool nullToAbsent) {
-    return ChatSessionsCompanion(
+  DocumentsCompanion toCompanion(bool nullToAbsent) {
+    return DocumentsCompanion(
       id: Value(id),
       fileName: Value(fileName),
       filePath: Value(filePath),
-      title: Value(title),
+      contentHash: Value(contentHash),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
     );
   }
 
-  factory ChatSession.fromJson(
+  factory Document.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return ChatSession(
+    return Document(
       id: serializer.fromJson<String>(json['id']),
       fileName: serializer.fromJson<String>(json['fileName']),
       filePath: serializer.fromJson<String>(json['filePath']),
-      title: serializer.fromJson<String>(json['title']),
+      contentHash: serializer.fromJson<String>(json['contentHash']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
   @override
@@ -179,104 +250,134 @@ class ChatSession extends DataClass implements Insertable<ChatSession> {
       'id': serializer.toJson<String>(id),
       'fileName': serializer.toJson<String>(fileName),
       'filePath': serializer.toJson<String>(filePath),
-      'title': serializer.toJson<String>(title),
+      'contentHash': serializer.toJson<String>(contentHash),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
 
-  ChatSession copyWith({
+  Document copyWith({
     String? id,
     String? fileName,
     String? filePath,
-    String? title,
-  }) => ChatSession(
+    String? contentHash,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => Document(
     id: id ?? this.id,
     fileName: fileName ?? this.fileName,
     filePath: filePath ?? this.filePath,
-    title: title ?? this.title,
+    contentHash: contentHash ?? this.contentHash,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
   );
-  ChatSession copyWithCompanion(ChatSessionsCompanion data) {
-    return ChatSession(
+  Document copyWithCompanion(DocumentsCompanion data) {
+    return Document(
       id: data.id.present ? data.id.value : this.id,
       fileName: data.fileName.present ? data.fileName.value : this.fileName,
       filePath: data.filePath.present ? data.filePath.value : this.filePath,
-      title: data.title.present ? data.title.value : this.title,
+      contentHash:
+          data.contentHash.present ? data.contentHash.value : this.contentHash,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
   @override
   String toString() {
-    return (StringBuffer('ChatSession(')
+    return (StringBuffer('Document(')
           ..write('id: $id, ')
           ..write('fileName: $fileName, ')
           ..write('filePath: $filePath, ')
-          ..write('title: $title')
+          ..write('contentHash: $contentHash, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, fileName, filePath, title);
+  int get hashCode =>
+      Object.hash(id, fileName, filePath, contentHash, createdAt, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is ChatSession &&
+      (other is Document &&
           other.id == this.id &&
           other.fileName == this.fileName &&
           other.filePath == this.filePath &&
-          other.title == this.title);
+          other.contentHash == this.contentHash &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
 }
 
-class ChatSessionsCompanion extends UpdateCompanion<ChatSession> {
+class DocumentsCompanion extends UpdateCompanion<Document> {
   final Value<String> id;
   final Value<String> fileName;
   final Value<String> filePath;
-  final Value<String> title;
+  final Value<String> contentHash;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
   final Value<int> rowid;
-  const ChatSessionsCompanion({
+  const DocumentsCompanion({
     this.id = const Value.absent(),
     this.fileName = const Value.absent(),
     this.filePath = const Value.absent(),
-    this.title = const Value.absent(),
+    this.contentHash = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  ChatSessionsCompanion.insert({
+  DocumentsCompanion.insert({
     required String id,
     required String fileName,
     required String filePath,
-    required String title,
+    required String contentHash,
+    required DateTime createdAt,
+    required DateTime updatedAt,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        fileName = Value(fileName),
        filePath = Value(filePath),
-       title = Value(title);
-  static Insertable<ChatSession> custom({
+       contentHash = Value(contentHash),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<Document> custom({
     Expression<String>? id,
     Expression<String>? fileName,
     Expression<String>? filePath,
-    Expression<String>? title,
+    Expression<String>? contentHash,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (fileName != null) 'file_name': fileName,
       if (filePath != null) 'file_path': filePath,
-      if (title != null) 'title': title,
+      if (contentHash != null) 'content_hash': contentHash,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
-  ChatSessionsCompanion copyWith({
+  DocumentsCompanion copyWith({
     Value<String>? id,
     Value<String>? fileName,
     Value<String>? filePath,
-    Value<String>? title,
+    Value<String>? contentHash,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
     Value<int>? rowid,
   }) {
-    return ChatSessionsCompanion(
+    return DocumentsCompanion(
       id: id ?? this.id,
       fileName: fileName ?? this.fileName,
       filePath: filePath ?? this.filePath,
-      title: title ?? this.title,
+      contentHash: contentHash ?? this.contentHash,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -293,8 +394,381 @@ class ChatSessionsCompanion extends UpdateCompanion<ChatSession> {
     if (filePath.present) {
       map['file_path'] = Variable<String>(filePath.value);
     }
+    if (contentHash.present) {
+      map['content_hash'] = Variable<String>(contentHash.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DocumentsCompanion(')
+          ..write('id: $id, ')
+          ..write('fileName: $fileName, ')
+          ..write('filePath: $filePath, ')
+          ..write('contentHash: $contentHash, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ChatSessionsTable extends ChatSessions
+    with TableInfo<$ChatSessionsTable, ChatSession> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ChatSessionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _documentIdMeta = const VerificationMeta(
+    'documentId',
+  );
+  @override
+  late final GeneratedColumn<String> documentId = GeneratedColumn<String>(
+    'document_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    documentId,
+    title,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'chat_sessions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ChatSession> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('document_id')) {
+      context.handle(
+        _documentIdMeta,
+        documentId.isAcceptableOrUnknown(data['document_id']!, _documentIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_documentIdMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ChatSession map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ChatSession(
+      id:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}id'],
+          )!,
+      documentId:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}document_id'],
+          )!,
+      title:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}title'],
+          )!,
+      createdAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}created_at'],
+          )!,
+      updatedAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}updated_at'],
+          )!,
+    );
+  }
+
+  @override
+  $ChatSessionsTable createAlias(String alias) {
+    return $ChatSessionsTable(attachedDatabase, alias);
+  }
+}
+
+class ChatSession extends DataClass implements Insertable<ChatSession> {
+  final String id;
+  final String documentId;
+  final String title;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const ChatSession({
+    required this.id,
+    required this.documentId,
+    required this.title,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['document_id'] = Variable<String>(documentId);
+    map['title'] = Variable<String>(title);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  ChatSessionsCompanion toCompanion(bool nullToAbsent) {
+    return ChatSessionsCompanion(
+      id: Value(id),
+      documentId: Value(documentId),
+      title: Value(title),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory ChatSession.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ChatSession(
+      id: serializer.fromJson<String>(json['id']),
+      documentId: serializer.fromJson<String>(json['documentId']),
+      title: serializer.fromJson<String>(json['title']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'documentId': serializer.toJson<String>(documentId),
+      'title': serializer.toJson<String>(title),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  ChatSession copyWith({
+    String? id,
+    String? documentId,
+    String? title,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => ChatSession(
+    id: id ?? this.id,
+    documentId: documentId ?? this.documentId,
+    title: title ?? this.title,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  ChatSession copyWithCompanion(ChatSessionsCompanion data) {
+    return ChatSession(
+      id: data.id.present ? data.id.value : this.id,
+      documentId:
+          data.documentId.present ? data.documentId.value : this.documentId,
+      title: data.title.present ? data.title.value : this.title,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChatSession(')
+          ..write('id: $id, ')
+          ..write('documentId: $documentId, ')
+          ..write('title: $title, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, documentId, title, createdAt, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ChatSession &&
+          other.id == this.id &&
+          other.documentId == this.documentId &&
+          other.title == this.title &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class ChatSessionsCompanion extends UpdateCompanion<ChatSession> {
+  final Value<String> id;
+  final Value<String> documentId;
+  final Value<String> title;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const ChatSessionsCompanion({
+    this.id = const Value.absent(),
+    this.documentId = const Value.absent(),
+    this.title = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ChatSessionsCompanion.insert({
+    required String id,
+    required String documentId,
+    required String title,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       documentId = Value(documentId),
+       title = Value(title),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<ChatSession> custom({
+    Expression<String>? id,
+    Expression<String>? documentId,
+    Expression<String>? title,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (documentId != null) 'document_id': documentId,
+      if (title != null) 'title': title,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ChatSessionsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? documentId,
+    Value<String>? title,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return ChatSessionsCompanion(
+      id: id ?? this.id,
+      documentId: documentId ?? this.documentId,
+      title: title ?? this.title,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (documentId.present) {
+      map['document_id'] = Variable<String>(documentId.value);
+    }
     if (title.present) {
       map['title'] = Variable<String>(title.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -306,9 +780,10 @@ class ChatSessionsCompanion extends UpdateCompanion<ChatSession> {
   String toString() {
     return (StringBuffer('ChatSessionsCompanion(')
           ..write('id: $id, ')
-          ..write('fileName: $fileName, ')
-          ..write('filePath: $filePath, ')
+          ..write('documentId: $documentId, ')
           ..write('title: $title, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -366,8 +841,25 @@ class $ChatMessagesTable extends ChatMessages
       'CHECK ("is_user" IN (0, 1))',
     ),
   );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
   @override
-  List<GeneratedColumn> get $columns => [id, chatId, messageText, isUser];
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    chatId,
+    messageText,
+    isUser,
+    createdAt,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -410,6 +902,14 @@ class $ChatMessagesTable extends ChatMessages
     } else if (isInserting) {
       context.missing(_isUserMeta);
     }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
     return context;
   }
 
@@ -439,6 +939,11 @@ class $ChatMessagesTable extends ChatMessages
             DriftSqlType.bool,
             data['${effectivePrefix}is_user'],
           )!,
+      createdAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}created_at'],
+          )!,
     );
   }
 
@@ -453,11 +958,13 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
   final String chatId;
   final String messageText;
   final bool isUser;
+  final DateTime createdAt;
   const ChatMessage({
     required this.id,
     required this.chatId,
     required this.messageText,
     required this.isUser,
+    required this.createdAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -466,6 +973,7 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
     map['chat_id'] = Variable<String>(chatId);
     map['message_text'] = Variable<String>(messageText);
     map['is_user'] = Variable<bool>(isUser);
+    map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
 
@@ -475,6 +983,7 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
       chatId: Value(chatId),
       messageText: Value(messageText),
       isUser: Value(isUser),
+      createdAt: Value(createdAt),
     );
   }
 
@@ -488,6 +997,7 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
       chatId: serializer.fromJson<String>(json['chatId']),
       messageText: serializer.fromJson<String>(json['messageText']),
       isUser: serializer.fromJson<bool>(json['isUser']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
   @override
@@ -498,6 +1008,7 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
       'chatId': serializer.toJson<String>(chatId),
       'messageText': serializer.toJson<String>(messageText),
       'isUser': serializer.toJson<bool>(isUser),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
 
@@ -506,11 +1017,13 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
     String? chatId,
     String? messageText,
     bool? isUser,
+    DateTime? createdAt,
   }) => ChatMessage(
     id: id ?? this.id,
     chatId: chatId ?? this.chatId,
     messageText: messageText ?? this.messageText,
     isUser: isUser ?? this.isUser,
+    createdAt: createdAt ?? this.createdAt,
   );
   ChatMessage copyWithCompanion(ChatMessagesCompanion data) {
     return ChatMessage(
@@ -519,6 +1032,7 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
       messageText:
           data.messageText.present ? data.messageText.value : this.messageText,
       isUser: data.isUser.present ? data.isUser.value : this.isUser,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
 
@@ -528,13 +1042,14 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
           ..write('id: $id, ')
           ..write('chatId: $chatId, ')
           ..write('messageText: $messageText, ')
-          ..write('isUser: $isUser')
+          ..write('isUser: $isUser, ')
+          ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, chatId, messageText, isUser);
+  int get hashCode => Object.hash(id, chatId, messageText, isUser, createdAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -542,7 +1057,8 @@ class ChatMessage extends DataClass implements Insertable<ChatMessage> {
           other.id == this.id &&
           other.chatId == this.chatId &&
           other.messageText == this.messageText &&
-          other.isUser == this.isUser);
+          other.isUser == this.isUser &&
+          other.createdAt == this.createdAt);
 }
 
 class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
@@ -550,31 +1066,37 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
   final Value<String> chatId;
   final Value<String> messageText;
   final Value<bool> isUser;
+  final Value<DateTime> createdAt;
   const ChatMessagesCompanion({
     this.id = const Value.absent(),
     this.chatId = const Value.absent(),
     this.messageText = const Value.absent(),
     this.isUser = const Value.absent(),
+    this.createdAt = const Value.absent(),
   });
   ChatMessagesCompanion.insert({
     this.id = const Value.absent(),
     required String chatId,
     required String messageText,
     required bool isUser,
+    required DateTime createdAt,
   }) : chatId = Value(chatId),
        messageText = Value(messageText),
-       isUser = Value(isUser);
+       isUser = Value(isUser),
+       createdAt = Value(createdAt);
   static Insertable<ChatMessage> custom({
     Expression<int>? id,
     Expression<String>? chatId,
     Expression<String>? messageText,
     Expression<bool>? isUser,
+    Expression<DateTime>? createdAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (chatId != null) 'chat_id': chatId,
       if (messageText != null) 'message_text': messageText,
       if (isUser != null) 'is_user': isUser,
+      if (createdAt != null) 'created_at': createdAt,
     });
   }
 
@@ -583,12 +1105,14 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
     Value<String>? chatId,
     Value<String>? messageText,
     Value<bool>? isUser,
+    Value<DateTime>? createdAt,
   }) {
     return ChatMessagesCompanion(
       id: id ?? this.id,
       chatId: chatId ?? this.chatId,
       messageText: messageText ?? this.messageText,
       isUser: isUser ?? this.isUser,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 
@@ -607,6 +1131,9 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
     if (isUser.present) {
       map['is_user'] = Variable<bool>(isUser.value);
     }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
     return map;
   }
 
@@ -616,7 +1143,8 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
           ..write('id: $id, ')
           ..write('chatId: $chatId, ')
           ..write('messageText: $messageText, ')
-          ..write('isUser: $isUser')
+          ..write('isUser: $isUser, ')
+          ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
@@ -625,6 +1153,7 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
+  late final $DocumentsTable documents = $DocumentsTable(this);
   late final $ChatSessionsTable chatSessions = $ChatSessionsTable(this);
   late final $ChatMessagesTable chatMessages = $ChatMessagesTable(this);
   @override
@@ -632,31 +1161,36 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
+    documents,
     chatSessions,
     chatMessages,
   ];
 }
 
-typedef $$ChatSessionsTableCreateCompanionBuilder =
-    ChatSessionsCompanion Function({
+typedef $$DocumentsTableCreateCompanionBuilder =
+    DocumentsCompanion Function({
       required String id,
       required String fileName,
       required String filePath,
-      required String title,
+      required String contentHash,
+      required DateTime createdAt,
+      required DateTime updatedAt,
       Value<int> rowid,
     });
-typedef $$ChatSessionsTableUpdateCompanionBuilder =
-    ChatSessionsCompanion Function({
+typedef $$DocumentsTableUpdateCompanionBuilder =
+    DocumentsCompanion Function({
       Value<String> id,
       Value<String> fileName,
       Value<String> filePath,
-      Value<String> title,
+      Value<String> contentHash,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
       Value<int> rowid,
     });
 
-class $$ChatSessionsTableFilterComposer
-    extends Composer<_$AppDatabase, $ChatSessionsTable> {
-  $$ChatSessionsTableFilterComposer({
+class $$DocumentsTableFilterComposer
+    extends Composer<_$AppDatabase, $DocumentsTable> {
+  $$DocumentsTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -678,15 +1212,25 @@ class $$ChatSessionsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get title => $composableBuilder(
-    column: $table.title,
+  ColumnFilters<String> get contentHash => $composableBuilder(
+    column: $table.contentHash,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
 }
 
-class $$ChatSessionsTableOrderingComposer
-    extends Composer<_$AppDatabase, $ChatSessionsTable> {
-  $$ChatSessionsTableOrderingComposer({
+class $$DocumentsTableOrderingComposer
+    extends Composer<_$AppDatabase, $DocumentsTable> {
+  $$DocumentsTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -708,8 +1252,228 @@ class $$ChatSessionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get contentHash => $composableBuilder(
+    column: $table.contentHash,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DocumentsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DocumentsTable> {
+  $$DocumentsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get fileName =>
+      $composableBuilder(column: $table.fileName, builder: (column) => column);
+
+  GeneratedColumn<String> get filePath =>
+      $composableBuilder(column: $table.filePath, builder: (column) => column);
+
+  GeneratedColumn<String> get contentHash => $composableBuilder(
+    column: $table.contentHash,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$DocumentsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $DocumentsTable,
+          Document,
+          $$DocumentsTableFilterComposer,
+          $$DocumentsTableOrderingComposer,
+          $$DocumentsTableAnnotationComposer,
+          $$DocumentsTableCreateCompanionBuilder,
+          $$DocumentsTableUpdateCompanionBuilder,
+          (Document, BaseReferences<_$AppDatabase, $DocumentsTable, Document>),
+          Document,
+          PrefetchHooks Function()
+        > {
+  $$DocumentsTableTableManager(_$AppDatabase db, $DocumentsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer:
+              () => $$DocumentsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer:
+              () => $$DocumentsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer:
+              () => $$DocumentsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> fileName = const Value.absent(),
+                Value<String> filePath = const Value.absent(),
+                Value<String> contentHash = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DocumentsCompanion(
+                id: id,
+                fileName: fileName,
+                filePath: filePath,
+                contentHash: contentHash,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String fileName,
+                required String filePath,
+                required String contentHash,
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => DocumentsCompanion.insert(
+                id: id,
+                fileName: fileName,
+                filePath: filePath,
+                contentHash: contentHash,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper:
+              (p0) =>
+                  p0
+                      .map(
+                        (e) => (
+                          e.readTable(table),
+                          BaseReferences(db, table, e),
+                        ),
+                      )
+                      .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$DocumentsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $DocumentsTable,
+      Document,
+      $$DocumentsTableFilterComposer,
+      $$DocumentsTableOrderingComposer,
+      $$DocumentsTableAnnotationComposer,
+      $$DocumentsTableCreateCompanionBuilder,
+      $$DocumentsTableUpdateCompanionBuilder,
+      (Document, BaseReferences<_$AppDatabase, $DocumentsTable, Document>),
+      Document,
+      PrefetchHooks Function()
+    >;
+typedef $$ChatSessionsTableCreateCompanionBuilder =
+    ChatSessionsCompanion Function({
+      required String id,
+      required String documentId,
+      required String title,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$ChatSessionsTableUpdateCompanionBuilder =
+    ChatSessionsCompanion Function({
+      Value<String> id,
+      Value<String> documentId,
+      Value<String> title,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$ChatSessionsTableFilterComposer
+    extends Composer<_$AppDatabase, $ChatSessionsTable> {
+  $$ChatSessionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get documentId => $composableBuilder(
+    column: $table.documentId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ChatSessionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ChatSessionsTable> {
+  $$ChatSessionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get documentId => $composableBuilder(
+    column: $table.documentId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get title => $composableBuilder(
     column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
 }
@@ -726,14 +1490,19 @@ class $$ChatSessionsTableAnnotationComposer
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get fileName =>
-      $composableBuilder(column: $table.fileName, builder: (column) => column);
-
-  GeneratedColumn<String> get filePath =>
-      $composableBuilder(column: $table.filePath, builder: (column) => column);
+  GeneratedColumn<String> get documentId => $composableBuilder(
+    column: $table.documentId,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get title =>
       $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
 class $$ChatSessionsTableTableManager
@@ -769,29 +1538,33 @@ class $$ChatSessionsTableTableManager
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
-                Value<String> fileName = const Value.absent(),
-                Value<String> filePath = const Value.absent(),
+                Value<String> documentId = const Value.absent(),
                 Value<String> title = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ChatSessionsCompanion(
                 id: id,
-                fileName: fileName,
-                filePath: filePath,
+                documentId: documentId,
                 title: title,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
                 required String id,
-                required String fileName,
-                required String filePath,
+                required String documentId,
                 required String title,
+                required DateTime createdAt,
+                required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
               }) => ChatSessionsCompanion.insert(
                 id: id,
-                fileName: fileName,
-                filePath: filePath,
+                documentId: documentId,
                 title: title,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           withReferenceMapper:
@@ -832,6 +1605,7 @@ typedef $$ChatMessagesTableCreateCompanionBuilder =
       required String chatId,
       required String messageText,
       required bool isUser,
+      required DateTime createdAt,
     });
 typedef $$ChatMessagesTableUpdateCompanionBuilder =
     ChatMessagesCompanion Function({
@@ -839,6 +1613,7 @@ typedef $$ChatMessagesTableUpdateCompanionBuilder =
       Value<String> chatId,
       Value<String> messageText,
       Value<bool> isUser,
+      Value<DateTime> createdAt,
     });
 
 class $$ChatMessagesTableFilterComposer
@@ -867,6 +1642,11 @@ class $$ChatMessagesTableFilterComposer
 
   ColumnFilters<bool> get isUser => $composableBuilder(
     column: $table.isUser,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -899,6 +1679,11 @@ class $$ChatMessagesTableOrderingComposer
     column: $table.isUser,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ChatMessagesTableAnnotationComposer
@@ -923,6 +1708,9 @@ class $$ChatMessagesTableAnnotationComposer
 
   GeneratedColumn<bool> get isUser =>
       $composableBuilder(column: $table.isUser, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
 }
 
 class $$ChatMessagesTableTableManager
@@ -961,11 +1749,13 @@ class $$ChatMessagesTableTableManager
                 Value<String> chatId = const Value.absent(),
                 Value<String> messageText = const Value.absent(),
                 Value<bool> isUser = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
               }) => ChatMessagesCompanion(
                 id: id,
                 chatId: chatId,
                 messageText: messageText,
                 isUser: isUser,
+                createdAt: createdAt,
               ),
           createCompanionCallback:
               ({
@@ -973,11 +1763,13 @@ class $$ChatMessagesTableTableManager
                 required String chatId,
                 required String messageText,
                 required bool isUser,
+                required DateTime createdAt,
               }) => ChatMessagesCompanion.insert(
                 id: id,
                 chatId: chatId,
                 messageText: messageText,
                 isUser: isUser,
+                createdAt: createdAt,
               ),
           withReferenceMapper:
               (p0) =>
@@ -1015,6 +1807,8 @@ typedef $$ChatMessagesTableProcessedTableManager =
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
+  $$DocumentsTableTableManager get documents =>
+      $$DocumentsTableTableManager(_db, _db.documents);
   $$ChatSessionsTableTableManager get chatSessions =>
       $$ChatSessionsTableTableManager(_db, _db.chatSessions);
   $$ChatMessagesTableTableManager get chatMessages =>

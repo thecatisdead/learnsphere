@@ -19,6 +19,10 @@ import 'package:uuid/uuid.dart';
 import '../../database/database_provider.dart';
 import '../../database/chat_repository.dart';
 import 'package:learnsphere/providers/chat_session_provider.dart';
+import 'package:uuid/uuid.dart';
+import 'package:learnsphere/database/database_provider.dart';
+import 'package:learnsphere/database/document_repository.dart';
+import 'package:learnsphere/services/file_hash_service.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -28,6 +32,15 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+
+    Future.microtask(() {
+      ref.read(chatSessionsProvider.notifier).loadAllChats();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final recentMaterials = ref.watch(recentMaterialsProvider);
@@ -60,61 +73,104 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 );
               },
             ),
+
           UploadCard(
             onTap: () async {
-              FilePickerResult? result = await FilePicker.pickFiles(
+              final result = await FilePicker.pickFiles(
                 type: FileType.custom,
                 allowedExtensions: ['pdf'],
               );
 
-              if (result != null) {
-                final fileName = result.files.single.name;
-                final filePath = result.files.single.path!;
+              if (result == null) {
+                return;
+              }
 
-                final chatId = await ref
-                    .read(chatSessionsProvider.notifier)
-                    .createChat(fileName: fileName, filePath: filePath);
+              final fileName = result.files.single.name;
+              final filePath = result.files.single.path!;
 
-                final session = StudySession(
-                  chatId: chatId,
-                  fileName: fileName,
-                  filePath: filePath,
-                );
+              print("📄 PDF SELECTED: $fileName");
 
-                print("🆕 CHAT CREATED: $chatId");
+              // --------------------------------------------------
+              // 1. Calculate PDF identity
+              // --------------------------------------------------
 
-                final text = await ref
-                    .read(pdfTextProvider.notifier)
-                    .loadText(session.filePath);
+              final contentHash = await FileHashService.sha256File(filePath);
 
-                print("📚 Indexing ${session.fileName}");
+              print("🔐 PDF HASH: $contentHash");
 
-                await AiService.indexPdf(
-                  fileName: session.fileName,
-                  text: text,
-                );
+              // --------------------------------------------------
+              // 2. Find existing document or create a new one
+              // --------------------------------------------------
 
-                print("✅ PDF indexed");
+              final documentRepository = DocumentRepository(
+                ref.read(databaseProvider),
+              );
 
-                final added = ref
-                    .read(recentMaterialsProvider.notifier)
-                    .addMaterial(session);
+              final document = await documentRepository.getOrCreateDocument(
+                id: const Uuid().v4(),
+                fileName: fileName,
+                filePath: filePath,
+                contentHash: contentHash,
+              );
 
-                if (!added) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        "You can only upload 5 PDFs. Delete one to upload another.",
-                      ),
+              print("📚 DOCUMENT ID: ${document.id}");
+
+              // --------------------------------------------------
+              // 3. Create StudySession
+              // --------------------------------------------------
+
+              final session = StudySession(
+                documentId: document.id,
+                fileName: document.fileName,
+                filePath: document.filePath,
+              );
+
+              // --------------------------------------------------
+              // 4. Extract PDF text
+              // --------------------------------------------------
+
+              final text = await ref
+                  .read(pdfTextProvider.notifier)
+                  .loadText(session.filePath);
+
+              print("📚 Indexing ${session.fileName}");
+
+              // --------------------------------------------------
+              // 5. Index PDF for AI
+              // --------------------------------------------------
+
+              await AiService.indexPdf(fileName: session.fileName, text: text);
+
+              print("✅ PDF indexed");
+
+              // --------------------------------------------------
+              // 6. Add to recent materials
+              // --------------------------------------------------
+
+              final added = ref
+                  .read(recentMaterialsProvider.notifier)
+                  .addMaterial(session);
+
+              if (!added) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      "You can only upload 5 PDFs. Delete one to upload another.",
                     ),
-                  );
-                  return;
-                }
+                  ),
+                );
+                return;
+              }
 
-                ref.read(aiMaterialProvider.notifier).addMaterial(session);
+              ref.read(aiMaterialProvider.notifier).addMaterial(session);
 
-                ref.read(studySessionProvider.notifier).setSession(session);
-              } else {}
+              // --------------------------------------------------
+              // 7. Set current study session
+              // --------------------------------------------------
+
+              ref.read(studySessionProvider.notifier).setSession(session);
+
+              print("✅ STUDY SESSION SET");
             },
           ),
           RecentMaterialSection(

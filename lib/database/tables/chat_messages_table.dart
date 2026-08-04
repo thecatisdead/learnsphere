@@ -8,4 +8,6 @@ class ChatMessages extends Table {
   TextColumn get messageText => text()();
 
   BoolColumn get isUser => boolean()();
+
+  DateTimeColumn get createdAt => dateTime()();
 }
