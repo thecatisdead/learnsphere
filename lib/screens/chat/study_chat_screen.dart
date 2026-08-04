@@ -45,6 +45,7 @@ class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
 
   Future<void> createNewChat() async {
     final session = ref.read(studySessionProvider);
+    final history = List<ChatMessage>.from(currentChatSession.messages);
 
     if (session == null) {
       return;
@@ -90,6 +91,7 @@ class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
     }
 
     final session = ref.read(studySessionProvider);
+    final history = List<ChatMessage>.from(currentChatSession.messages);
 
     if (session == null) {
       return;
@@ -132,7 +134,11 @@ class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
     scrollToBottom();
 
     try {
-      await askAi(question: question, fileName: session.fileName);
+      await askAi(
+        question: question,
+        fileName: session.fileName,
+        history: history,
+      );
     } finally {
       if (!mounted) {
         return;
@@ -149,6 +155,7 @@ class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
   Future<void> askAi({
     required String question,
     required String fileName,
+    required List<ChatMessage> history,
   }) async {
     print("ASK AI CALLED");
 
@@ -158,6 +165,7 @@ class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
       final answer = await AiService.askAboutPdf(
         fileName: fileName,
         question: question,
+        history: history,
       );
 
       print("🤖 AI RESPONSE TIME: ${stopwatch.elapsedMilliseconds}ms");
@@ -172,14 +180,15 @@ class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
       ref
           .read(chatSessionsProvider.notifier)
           .addMessage(chatId: selectedChatId, message: aiMessage);
+
       final repository = ChatRepository(ref.read(databaseProvider));
       await repository.saveMessage(
         chatId: selectedChatId,
         text: answer,
         isUser: false,
       );
-      final savedMessages = await repository.getMessages(selectedChatId);
 
+      final savedMessages = await repository.getMessages(selectedChatId);
       for (final message in savedMessages) {
         print(
           '💾 SQLITE: ${message.chatId} | ${message.messageText} | isUser=${message.isUser}',
@@ -187,12 +196,28 @@ class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
       }
 
       setState(() {});
-
       scrollToBottom();
     } catch (e) {
       if (!mounted) return;
 
       print("AI error: $e");
+
+      // Put the question back in the input box so retry is one tap away
+      controller.text = question;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text("Couldn't get a response. Please try again."),
+          action: SnackBarAction(
+            label: "RETRY",
+            onPressed: () {
+              controller.text = question;
+              sendMessage();
+            },
+          ),
+          duration: const Duration(seconds: 6),
+        ),
+      );
     }
   }
 

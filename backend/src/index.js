@@ -54,7 +54,7 @@ export default {
 			const matches = await env.VECTORIZE.query(
 				result.data[0],
 				{
-					topK: 3,
+					topK: 5,
 					returnMetadata: "all",
 					filter: {
 						fileName: body.fileName,
@@ -81,9 +81,15 @@ export default {
 			// =========================
 			// CHAT
 			// =========================
+
+			// =========================
+			// CHAT
+			// =========================
+
 			if (url.pathname === "/chat") {
 				const question = body.question;
 				const fileName = body.fileName;
+				const history = body.history || [];
 
 				if (!question || !fileName) {
 					return Response.json(
@@ -94,60 +100,230 @@ export default {
 					);
 				}
 
-				const embedding = await env.AI.run(
-					"@cf/baai/bge-base-en-v1.5",
-					{
-						text: [question],
+				const totalStart = Date.now();
+
+				console.log("=================================");
+				console.log("🔥 /chat START");
+				console.log("🔎 QUESTION:", question);
+				console.log("📄 FILE:", fileName);
+				console.log("=================================");
+
+				// ------------------------------------------
+				// Helper: timeout
+				// ------------------------------------------
+
+				function withTimeout(promise, ms, name) {
+					return Promise.race([
+						promise,
+
+						new Promise((_, reject) =>
+							setTimeout(() => {
+								reject(
+									new Error(
+										`${name} timed out after ${ms}ms`
+									)
+								);
+							}, ms)
+						),
+					]);
+				}
+
+				try {
+					// ------------------------------------------
+					// 1. Generate question embedding
+					// ------------------------------------------
+
+					console.log("🧠 STARTING EMBEDDING...");
+
+					const embeddingStart = Date.now();
+
+					const embedding = await withTimeout(
+						env.AI.run(
+							"@cf/baai/bge-base-en-v1.5",
+							{
+								text: [question],
+							}
+						),
+						10000,
+						"Embedding"
+					);
+
+					console.log(
+						`🧠 EMBEDDING DONE: ${Date.now() - embeddingStart
+						}ms`
+					);
+
+					// ------------------------------------------
+					// 2. Vector search
+					// ------------------------------------------
+
+					console.log("🔎 BEFORE VECTOR SEARCH");
+
+					const vectorStart = Date.now();
+
+					const matches = await withTimeout(
+						env.VECTORIZE.query(
+							embedding.data[0],
+							{
+								topK: 5,
+								returnMetadata: "all",
+								filter: {
+									fileName: fileName,
+								},
+							}
+						),
+						10000,
+						"Vectorize"
+					);
+
+					console.log("🔎 AFTER VECTOR SEARCH");
+
+					console.log(
+						`🔎 VECTOR SEARCH DONE: ${Date.now() - vectorStart
+						}ms`
+					);
+
+					console.log(
+						"📊 MATCH COUNT:",
+						matches.matches.length
+					);
+
+					// ------------------------------------------
+					// Print retrieved chunks
+					// ------------------------------------------
+
+					for (const match of matches.matches) {
+						console.log(
+							"📌 MATCH:",
+							"score =", match.score,
+							"| file =", match.metadata?.fileName,
+							"| chunk =", match.metadata?.chunkIndex,
+							"| text =",
+							match.metadata?.text?.substring(0, 500)
+						);
 					}
-				);
 
-				const matches = await env.VECTORIZE.query(
-					embedding.data[0],
-					{
-						topK: 3,
-						returnMetadata: "all",
-						filter: {
-							fileName: fileName,
-						},
-					}
-				);
+					// ------------------------------------------
+					// 3. Conversation history
+					// ------------------------------------------
 
-				const context = matches.matches
-					.map((match) => match.metadata?.text)
-					.filter(Boolean)
-					.join("\n\n---\n\n");
+					const conversationHistory = history
+						.slice(-6)
+						.map((message) => {
+							return `${message.role === "user"
+									? "User"
+									: "Assistant"
+								}: ${message.text}`;
+						})
+						.join("\n");
 
-				console.log("🔥 RAG MATCHES:", matches.matches);
-				console.log("📚 RAG CONTEXT:", context);
+					// ------------------------------------------
+					// 4. Build RAG context
+					// ------------------------------------------
 
-				const prompt = `
-You are an AI study assistant.
+					const context = matches.matches
+						.map((match) => match.metadata?.text)
+						.filter(Boolean)
+						.join("\n\n---\n\n");
 
-Answer the user's question using ONLY the information contained
-in the provided study material.
+					console.log(
+						"📚 CONTEXT LENGTH:",
+						context.length
+					);
+
+					// ------------------------------------------
+					// 5. Gemini prompt
+					// ------------------------------------------
+
+					const prompt = `
+You are an AI study assistant for the PDF the user is currently studying.
+
+Use the provided PDF context to answer the user's question.
 
 Rules:
 - Do not use outside knowledge.
+- Answer using the provided study material.
+- Keep your answer relevant to the current PDF.
+- Understand the user's intent even when their wording is different from the wording in the study material.
+- Accept typos, spelling mistakes, singular/plural differences, and small wording differences.
+- Use the conversation history to understand follow-up questions and references such as "it", "they", "that", "this", "the previous one", etc.
+- If the user asks a follow-up question, determine what they are referring to from the conversation history.
+- Do not invent information.
+- If the question is asking for another meaning, definition, characteristic, or detail that is not present in the PDF context, clearly say that the PDF does not provide another one.
 - If the answer cannot be found in the study material, say:
   "I couldn't find the answer in the provided study material."
 - Be clear and concise.
 - Explain the answer in a way that helps the student understand it.
 
-DOCUMENT SECTION:
+CONVERSATION HISTORY:
+${conversationHistory}
+
+PDF CONTEXT:
 ${context}
 
 USER QUESTION:
 ${question}
 `;
 
-				const response = await ai.models.generateContent({
-					model: "gemini-3.5-flash",
-					contents: prompt,
-				});
+					// ------------------------------------------
+					// 6. Gemini
+					// ------------------------------------------
 
-				return Response.json({
-					answer: response.text,
-				});
+					console.log("🤖 STARTING GEMINI...");
+
+					const aiStart = Date.now();
+
+					const response = await withTimeout(
+						ai.models.generateContent({
+							model: "gemini-3.6-flash",
+							contents: prompt,
+						}),
+						15000,
+						"Gemini"
+					);
+
+					console.log(
+						`🤖 GEMINI DONE: ${Date.now() - aiStart
+						}ms`
+					);
+
+					console.log(
+						`⏱️ TOTAL /chat: ${Date.now() - totalStart
+						}ms`
+					);
+
+					console.log("🔥 /chat COMPLETE");
+
+					return Response.json({
+						answer:
+							response.text ||
+							"I couldn't generate an answer right now.",
+					});
+
+				} catch (error) {
+
+					// ------------------------------------------
+					// Something timed out or failed
+					// ------------------------------------------
+
+					console.error(
+						"❌ /chat FAILED:",
+						error
+					);
+
+					console.log(
+						`⏱️ FAILED AFTER: ${Date.now() - totalStart
+						}ms`
+					);
+
+					return Response.json(
+						{
+							answer:
+								"I couldn't get an answer right now. Please try asking the question again.",
+						},
+						{ status: 200 }
+					);
+				}
 			}
 			// =========================
 			// QUIZ

@@ -3,6 +3,7 @@ import '../../models/flashcard.dart';
 import '../../models/flashcarddeck.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../../models/chat_message.dart';
 
 class AiService {
   //Quiz
@@ -58,7 +59,7 @@ class AiService {
     return questions;
   }
 
-  static List<String> splitIntoChunks(String text, {int chunkSize = 8000}) {
+  static List<String> splitIntoChunks(String text, {int chunkSize = 3000}) {
     final chunks = <String>[];
 
     for (int i = 0; i < text.length; i += chunkSize) {
@@ -143,22 +144,42 @@ class AiService {
   static Future<String> askAboutPdf({
     required String fileName,
     required String question,
+    required List<ChatMessage> history,
   }) async {
-    print("🔥 askAboutPdf() WAS CALLED");
+    Future<String> attempt() async {
+      final response = await http
+          .post(
+            Uri.parse('https://backend.regeryl1100.workers.dev/chat'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'fileName': fileName,
+              'question': question,
+              'history':
+                  history
+                      .map(
+                        (m) => {
+                          'role': m.isUser ? 'user' : 'assistant',
+                          'text': m.text,
+                        },
+                      )
+                      .toList(),
+            }),
+          )
+          .timeout(const Duration(seconds: 40));
 
-    final response = await http.post(
-      Uri.parse('https://backend.regeryl1100.workers.dev/chat'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'fileName': fileName, 'question': question}),
-    );
-
-    if (response.statusCode != 200) {
-      throw Exception(response.body);
+      if (response.statusCode != 200) {
+        throw Exception(response.body);
+      }
+      final data = jsonDecode(response.body);
+      return data['answer'] as String;
     }
 
-    final data = jsonDecode(response.body);
-
-    return data['answer'] as String;
+    try {
+      return await attempt();
+    } catch (_) {
+      // one silent retry — covers cold starts / transient network blips
+      return await attempt();
+    }
   }
 
   static Future<void> indexPdf({
