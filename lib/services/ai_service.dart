@@ -32,7 +32,7 @@ class AiService {
       print("Chunk length: ${chunk.length}");
 
       final response = await http.post(
-        Uri.parse('http://192.168.5.31:8787/quiz'),
+        Uri.parse('https://backend.regeryl1100.workers.dev/quiz'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'chunk': chunk,
@@ -91,7 +91,7 @@ class AiService {
     print("Chunk length: ${chunk.length}");
 
     final response = await http.post(
-      Uri.parse('http://192.168.5.31:8787/summary'),
+      Uri.parse('https://backend.regeryl1100.workers.dev/summary'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'context': chunk}),
     );
@@ -117,7 +117,7 @@ class AiService {
 
     for (final chunk in chunks) {
       final response = await http.post(
-        Uri.parse('http://192.168.5.31:8787/flashcards'),
+        Uri.parse('https://backend.regeryl1100.workers.dev/flashcards'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'context': chunk}),
       );

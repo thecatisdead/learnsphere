@@ -24,6 +24,7 @@ import 'package:learnsphere/database/database_provider.dart';
 import 'package:learnsphere/database/document_repository.dart';
 import 'package:learnsphere/services/file_hash_service.dart';
 
+
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -36,8 +37,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void initState() {
     super.initState();
 
-    Future.microtask(() {
-      ref.read(chatSessionsProvider.notifier).loadAllChats();
+    Future.microtask(() async {
+      await ref.read(chatSessionsProvider.notifier).loadAllChats();
+
+      await ref.read(recentMaterialsProvider.notifier).loadMaterials();
     });
   }
 
@@ -175,6 +178,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
           RecentMaterialSection(
             recentMaterials: recentMaterials,
+
             onMaterialTap: (material) {
               ref.read(studySessionProvider.notifier).setSession(material);
 
@@ -184,6 +188,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   builder: (context) => const StudyMaterialScreen(),
                 ),
               );
+            },
+
+            onDelete: (material) async {
+              await ref
+                  .read(recentMaterialsProvider.notifier)
+                  .removeMaterial(material.documentId);
             },
           ),
           AIRecommendationCard(),

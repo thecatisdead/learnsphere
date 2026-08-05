@@ -6,6 +6,11 @@ class DocumentRepository {
 
   DocumentRepository(this.db);
 
+  Future<void> deleteDocument(String documentId) async {
+    await (db.delete(db.documents)
+      ..where((document) => document.id.equals(documentId))).go();
+  }
+
   /// Finds a document using its SHA-256 hash.
   Future<Document?> getDocumentByHash(String contentHash) {
     return (db.select(db.documents)
