@@ -2,17 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:learnsphere/providers/study_session_provider.dart';
 import 'package:learnsphere/screens/summary/summary_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:learnsphere/screens/chat/study_chat_screen.dart';
 
 import '../../providers/ai_loading_provider.dart';
+import '../../providers/ai_material_provider.dart';
+import '../../providers/chat_session_provider.dart';
+import '../../database/database_provider.dart';
 
 import '../../shared/widgets/loadingdots_widget.dart';
 import '/../screens/quiz/quiz_screen.dart';
 import '/../screens/flashcard/flashcard_screen.dart';
-import '../../providers/ai_material_provider.dart';
-import 'package:learnsphere/screens/chat/study_chat_screen.dart';
-import '../../providers/chat_session_provider.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../database/database_provider.dart';
 import '../../database/chat_repository.dart';
 
 class StudyMaterialScreen extends ConsumerWidget {
@@ -67,7 +66,13 @@ class StudyMaterialScreen extends ConsumerWidget {
                   Icons.picture_as_pdf,
                   color: Color(0xFFF5C4B3),
                 ),
-                title: Text(session?.fileName ?? "No PDF Selected"),
+                title: Text(
+                  session?.fileName ?? "No PDF Selected",
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
+                  ),
+                ),
                 subtitle: const Text("Ready to study"),
               ),
             ),
@@ -420,7 +425,24 @@ class StudyMaterialScreen extends ConsumerWidget {
                   ),
                 );
               },
-              child: const Text("Ask AI"),
+              style: ElevatedButton.styleFrom(
+                elevation: 5, // Shadow
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 30,
+                  vertical: 15,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                "Ask AI",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: Color(0xFF2C2C2A),
+                ),
+              ),
             ),
           ],
         ),

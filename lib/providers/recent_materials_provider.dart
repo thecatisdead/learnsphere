@@ -63,4 +63,4 @@ final recentMaterialsProvider =
       RecentMaterialsNotifier.new,
     );
 
-const int maxMaterials = 5;
+const int maxMaterials = 10;

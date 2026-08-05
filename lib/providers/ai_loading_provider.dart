@@ -4,7 +4,6 @@ import '../providers/summary_provider.dart';
 import '../providers/quiz_provider.dart';
 import '../providers/flashcard_provider.dart';
 
-import 'package:learnsphere/services/pdf_services.dart';
 import 'package:learnsphere/services/ai_service.dart';
 import '../../models/quiz.dart';
 import '../../models/summary.dart';

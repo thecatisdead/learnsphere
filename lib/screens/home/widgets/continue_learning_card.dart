@@ -21,47 +21,76 @@ class ContinueLearningCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final completed =
-        [
-          summaryReady,
-          quizReady,
-          flashcardsReady,
-        ].where((ready) => ready).length;
-
-    final progress = completed / 3;
+    final theme = Theme.of(context);
 
     return AppCard(
       child: InkWell(
         onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Row(
+                children: [
+                  const Text("📚", style: TextStyle(fontSize: 20)),
 
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "📚 Continue Learning",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
+                  const SizedBox(width: 8),
 
-            Text(
-              session.fileName,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
+                  const Expanded(
+                    child: Text(
+                      "Continue Learning",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
 
-            SizedBox(height: 8),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    size: 22,
+                    color: Colors.grey.shade600,
+                  ),
+                ],
+              ),
 
-            Wrap(
-              spacing: 12,
-              runSpacing: 6,
-              children: [
-                StatusLabel(label: "Summary", ready: summaryReady),
-                StatusLabel(label: "Quiz", ready: quizReady),
-                StatusLabel(label: "Flashcards", ready: flashcardsReady),
-              ],
-            ),
-            SizedBox(height: 8),
-          ],
+              const SizedBox(height: 14),
+
+              // File name
+              Text(
+                session.fileName.replaceAll('.pdf', ''),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+
+              const SizedBox(height: 4),
+
+              Text(
+                "PDF",
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+              ),
+
+              const SizedBox(height: 14),
+
+              // AI features
+              Wrap(
+                spacing: 14,
+                runSpacing: 8,
+                children: [
+                  StatusLabel(label: "Summary", ready: summaryReady),
+                  StatusLabel(label: "Quiz", ready: quizReady),
+                  StatusLabel(label: "Flashcards", ready: flashcardsReady),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -80,11 +109,11 @@ class StatusLabel extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(
-          ready ? Icons.check_circle : Icons.circle_outlined,
+          ready ? Icons.check_circle_rounded : Icons.circle_outlined,
           size: 15,
           color: ready ? const Color(0xFF2E7D32) : const Color(0xFF77746E),
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: 5),
         Text(
           label,
           style: TextStyle(
