@@ -52,6 +52,50 @@ class $DocumentsTable extends Documents
     requiredDuringInsert: true,
     defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
   );
+  static const VerificationMeta _summaryGeneratedMeta = const VerificationMeta(
+    'summaryGenerated',
+  );
+  @override
+  late final GeneratedColumn<bool> summaryGenerated = GeneratedColumn<bool>(
+    'summary_generated',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("summary_generated" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _quizGeneratedMeta = const VerificationMeta(
+    'quizGenerated',
+  );
+  @override
+  late final GeneratedColumn<bool> quizGenerated = GeneratedColumn<bool>(
+    'quiz_generated',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("quiz_generated" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _flashcardsGeneratedMeta =
+      const VerificationMeta('flashcardsGenerated');
+  @override
+  late final GeneratedColumn<bool> flashcardsGenerated = GeneratedColumn<bool>(
+    'flashcards_generated',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("flashcards_generated" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -80,6 +124,9 @@ class $DocumentsTable extends Documents
     fileName,
     filePath,
     contentHash,
+    summaryGenerated,
+    quizGenerated,
+    flashcardsGenerated,
     createdAt,
     updatedAt,
   ];
@@ -127,6 +174,33 @@ class $DocumentsTable extends Documents
     } else if (isInserting) {
       context.missing(_contentHashMeta);
     }
+    if (data.containsKey('summary_generated')) {
+      context.handle(
+        _summaryGeneratedMeta,
+        summaryGenerated.isAcceptableOrUnknown(
+          data['summary_generated']!,
+          _summaryGeneratedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('quiz_generated')) {
+      context.handle(
+        _quizGeneratedMeta,
+        quizGenerated.isAcceptableOrUnknown(
+          data['quiz_generated']!,
+          _quizGeneratedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('flashcards_generated')) {
+      context.handle(
+        _flashcardsGeneratedMeta,
+        flashcardsGenerated.isAcceptableOrUnknown(
+          data['flashcards_generated']!,
+          _flashcardsGeneratedMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -172,6 +246,21 @@ class $DocumentsTable extends Documents
             DriftSqlType.string,
             data['${effectivePrefix}content_hash'],
           )!,
+      summaryGenerated:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.bool,
+            data['${effectivePrefix}summary_generated'],
+          )!,
+      quizGenerated:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.bool,
+            data['${effectivePrefix}quiz_generated'],
+          )!,
+      flashcardsGenerated:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.bool,
+            data['${effectivePrefix}flashcards_generated'],
+          )!,
       createdAt:
           attachedDatabase.typeMapping.read(
             DriftSqlType.dateTime,
@@ -196,6 +285,9 @@ class Document extends DataClass implements Insertable<Document> {
   final String fileName;
   final String filePath;
   final String contentHash;
+  final bool summaryGenerated;
+  final bool quizGenerated;
+  final bool flashcardsGenerated;
   final DateTime createdAt;
   final DateTime updatedAt;
   const Document({
@@ -203,6 +295,9 @@ class Document extends DataClass implements Insertable<Document> {
     required this.fileName,
     required this.filePath,
     required this.contentHash,
+    required this.summaryGenerated,
+    required this.quizGenerated,
+    required this.flashcardsGenerated,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -213,6 +308,9 @@ class Document extends DataClass implements Insertable<Document> {
     map['file_name'] = Variable<String>(fileName);
     map['file_path'] = Variable<String>(filePath);
     map['content_hash'] = Variable<String>(contentHash);
+    map['summary_generated'] = Variable<bool>(summaryGenerated);
+    map['quiz_generated'] = Variable<bool>(quizGenerated);
+    map['flashcards_generated'] = Variable<bool>(flashcardsGenerated);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -224,6 +322,9 @@ class Document extends DataClass implements Insertable<Document> {
       fileName: Value(fileName),
       filePath: Value(filePath),
       contentHash: Value(contentHash),
+      summaryGenerated: Value(summaryGenerated),
+      quizGenerated: Value(quizGenerated),
+      flashcardsGenerated: Value(flashcardsGenerated),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -239,6 +340,11 @@ class Document extends DataClass implements Insertable<Document> {
       fileName: serializer.fromJson<String>(json['fileName']),
       filePath: serializer.fromJson<String>(json['filePath']),
       contentHash: serializer.fromJson<String>(json['contentHash']),
+      summaryGenerated: serializer.fromJson<bool>(json['summaryGenerated']),
+      quizGenerated: serializer.fromJson<bool>(json['quizGenerated']),
+      flashcardsGenerated: serializer.fromJson<bool>(
+        json['flashcardsGenerated'],
+      ),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -251,6 +357,9 @@ class Document extends DataClass implements Insertable<Document> {
       'fileName': serializer.toJson<String>(fileName),
       'filePath': serializer.toJson<String>(filePath),
       'contentHash': serializer.toJson<String>(contentHash),
+      'summaryGenerated': serializer.toJson<bool>(summaryGenerated),
+      'quizGenerated': serializer.toJson<bool>(quizGenerated),
+      'flashcardsGenerated': serializer.toJson<bool>(flashcardsGenerated),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -261,6 +370,9 @@ class Document extends DataClass implements Insertable<Document> {
     String? fileName,
     String? filePath,
     String? contentHash,
+    bool? summaryGenerated,
+    bool? quizGenerated,
+    bool? flashcardsGenerated,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => Document(
@@ -268,6 +380,9 @@ class Document extends DataClass implements Insertable<Document> {
     fileName: fileName ?? this.fileName,
     filePath: filePath ?? this.filePath,
     contentHash: contentHash ?? this.contentHash,
+    summaryGenerated: summaryGenerated ?? this.summaryGenerated,
+    quizGenerated: quizGenerated ?? this.quizGenerated,
+    flashcardsGenerated: flashcardsGenerated ?? this.flashcardsGenerated,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -278,6 +393,18 @@ class Document extends DataClass implements Insertable<Document> {
       filePath: data.filePath.present ? data.filePath.value : this.filePath,
       contentHash:
           data.contentHash.present ? data.contentHash.value : this.contentHash,
+      summaryGenerated:
+          data.summaryGenerated.present
+              ? data.summaryGenerated.value
+              : this.summaryGenerated,
+      quizGenerated:
+          data.quizGenerated.present
+              ? data.quizGenerated.value
+              : this.quizGenerated,
+      flashcardsGenerated:
+          data.flashcardsGenerated.present
+              ? data.flashcardsGenerated.value
+              : this.flashcardsGenerated,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -290,6 +417,9 @@ class Document extends DataClass implements Insertable<Document> {
           ..write('fileName: $fileName, ')
           ..write('filePath: $filePath, ')
           ..write('contentHash: $contentHash, ')
+          ..write('summaryGenerated: $summaryGenerated, ')
+          ..write('quizGenerated: $quizGenerated, ')
+          ..write('flashcardsGenerated: $flashcardsGenerated, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -297,8 +427,17 @@ class Document extends DataClass implements Insertable<Document> {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, fileName, filePath, contentHash, createdAt, updatedAt);
+  int get hashCode => Object.hash(
+    id,
+    fileName,
+    filePath,
+    contentHash,
+    summaryGenerated,
+    quizGenerated,
+    flashcardsGenerated,
+    createdAt,
+    updatedAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -307,6 +446,9 @@ class Document extends DataClass implements Insertable<Document> {
           other.fileName == this.fileName &&
           other.filePath == this.filePath &&
           other.contentHash == this.contentHash &&
+          other.summaryGenerated == this.summaryGenerated &&
+          other.quizGenerated == this.quizGenerated &&
+          other.flashcardsGenerated == this.flashcardsGenerated &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -316,6 +458,9 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
   final Value<String> fileName;
   final Value<String> filePath;
   final Value<String> contentHash;
+  final Value<bool> summaryGenerated;
+  final Value<bool> quizGenerated;
+  final Value<bool> flashcardsGenerated;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
@@ -324,6 +469,9 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     this.fileName = const Value.absent(),
     this.filePath = const Value.absent(),
     this.contentHash = const Value.absent(),
+    this.summaryGenerated = const Value.absent(),
+    this.quizGenerated = const Value.absent(),
+    this.flashcardsGenerated = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -333,6 +481,9 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     required String fileName,
     required String filePath,
     required String contentHash,
+    this.summaryGenerated = const Value.absent(),
+    this.quizGenerated = const Value.absent(),
+    this.flashcardsGenerated = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     this.rowid = const Value.absent(),
@@ -347,6 +498,9 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     Expression<String>? fileName,
     Expression<String>? filePath,
     Expression<String>? contentHash,
+    Expression<bool>? summaryGenerated,
+    Expression<bool>? quizGenerated,
+    Expression<bool>? flashcardsGenerated,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
@@ -356,6 +510,10 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
       if (fileName != null) 'file_name': fileName,
       if (filePath != null) 'file_path': filePath,
       if (contentHash != null) 'content_hash': contentHash,
+      if (summaryGenerated != null) 'summary_generated': summaryGenerated,
+      if (quizGenerated != null) 'quiz_generated': quizGenerated,
+      if (flashcardsGenerated != null)
+        'flashcards_generated': flashcardsGenerated,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -367,6 +525,9 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     Value<String>? fileName,
     Value<String>? filePath,
     Value<String>? contentHash,
+    Value<bool>? summaryGenerated,
+    Value<bool>? quizGenerated,
+    Value<bool>? flashcardsGenerated,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
@@ -376,6 +537,9 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
       fileName: fileName ?? this.fileName,
       filePath: filePath ?? this.filePath,
       contentHash: contentHash ?? this.contentHash,
+      summaryGenerated: summaryGenerated ?? this.summaryGenerated,
+      quizGenerated: quizGenerated ?? this.quizGenerated,
+      flashcardsGenerated: flashcardsGenerated ?? this.flashcardsGenerated,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -397,6 +561,15 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     if (contentHash.present) {
       map['content_hash'] = Variable<String>(contentHash.value);
     }
+    if (summaryGenerated.present) {
+      map['summary_generated'] = Variable<bool>(summaryGenerated.value);
+    }
+    if (quizGenerated.present) {
+      map['quiz_generated'] = Variable<bool>(quizGenerated.value);
+    }
+    if (flashcardsGenerated.present) {
+      map['flashcards_generated'] = Variable<bool>(flashcardsGenerated.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -416,6 +589,9 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
           ..write('fileName: $fileName, ')
           ..write('filePath: $filePath, ')
           ..write('contentHash: $contentHash, ')
+          ..write('summaryGenerated: $summaryGenerated, ')
+          ..write('quizGenerated: $quizGenerated, ')
+          ..write('flashcardsGenerated: $flashcardsGenerated, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -1173,6 +1349,9 @@ typedef $$DocumentsTableCreateCompanionBuilder =
       required String fileName,
       required String filePath,
       required String contentHash,
+      Value<bool> summaryGenerated,
+      Value<bool> quizGenerated,
+      Value<bool> flashcardsGenerated,
       required DateTime createdAt,
       required DateTime updatedAt,
       Value<int> rowid,
@@ -1183,6 +1362,9 @@ typedef $$DocumentsTableUpdateCompanionBuilder =
       Value<String> fileName,
       Value<String> filePath,
       Value<String> contentHash,
+      Value<bool> summaryGenerated,
+      Value<bool> quizGenerated,
+      Value<bool> flashcardsGenerated,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> rowid,
@@ -1214,6 +1396,21 @@ class $$DocumentsTableFilterComposer
 
   ColumnFilters<String> get contentHash => $composableBuilder(
     column: $table.contentHash,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get summaryGenerated => $composableBuilder(
+    column: $table.summaryGenerated,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get quizGenerated => $composableBuilder(
+    column: $table.quizGenerated,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get flashcardsGenerated => $composableBuilder(
+    column: $table.flashcardsGenerated,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1257,6 +1454,21 @@ class $$DocumentsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get summaryGenerated => $composableBuilder(
+    column: $table.summaryGenerated,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get quizGenerated => $composableBuilder(
+    column: $table.quizGenerated,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get flashcardsGenerated => $composableBuilder(
+    column: $table.flashcardsGenerated,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -1288,6 +1500,21 @@ class $$DocumentsTableAnnotationComposer
 
   GeneratedColumn<String> get contentHash => $composableBuilder(
     column: $table.contentHash,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get summaryGenerated => $composableBuilder(
+    column: $table.summaryGenerated,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get quizGenerated => $composableBuilder(
+    column: $table.quizGenerated,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get flashcardsGenerated => $composableBuilder(
+    column: $table.flashcardsGenerated,
     builder: (column) => column,
   );
 
@@ -1330,6 +1557,9 @@ class $$DocumentsTableTableManager
                 Value<String> fileName = const Value.absent(),
                 Value<String> filePath = const Value.absent(),
                 Value<String> contentHash = const Value.absent(),
+                Value<bool> summaryGenerated = const Value.absent(),
+                Value<bool> quizGenerated = const Value.absent(),
+                Value<bool> flashcardsGenerated = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -1338,6 +1568,9 @@ class $$DocumentsTableTableManager
                 fileName: fileName,
                 filePath: filePath,
                 contentHash: contentHash,
+                summaryGenerated: summaryGenerated,
+                quizGenerated: quizGenerated,
+                flashcardsGenerated: flashcardsGenerated,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -1348,6 +1581,9 @@ class $$DocumentsTableTableManager
                 required String fileName,
                 required String filePath,
                 required String contentHash,
+                Value<bool> summaryGenerated = const Value.absent(),
+                Value<bool> quizGenerated = const Value.absent(),
+                Value<bool> flashcardsGenerated = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
@@ -1356,6 +1592,9 @@ class $$DocumentsTableTableManager
                 fileName: fileName,
                 filePath: filePath,
                 contentHash: contentHash,
+                summaryGenerated: summaryGenerated,
+                quizGenerated: quizGenerated,
+                flashcardsGenerated: flashcardsGenerated,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,

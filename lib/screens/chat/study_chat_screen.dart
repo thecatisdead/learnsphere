@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/chat_message.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../providers/pdf_text_provider.dart';
 import '../../providers/study_session_provider.dart';
-import '../../providers/ai_loading_provider.dart';
 import 'package:learnsphere/services/ai_service.dart';
 import '../../shared/widgets/loadingdots_widget.dart';
 import '../../models/chat_session.dart';

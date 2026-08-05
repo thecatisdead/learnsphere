@@ -14,44 +14,57 @@ import '/../screens/quiz/quiz_screen.dart';
 import '/../screens/flashcard/flashcard_screen.dart';
 import '../../database/chat_repository.dart';
 
+import '../../database/document_repository.dart';
+import '../../providers/document_provider.dart';
+
+
 class StudyMaterialScreen extends ConsumerWidget {
   const StudyMaterialScreen({super.key});
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final session = ref.watch(studySessionProvider);
+@override
+Widget build(BuildContext context, WidgetRef ref) {
+  final session = ref.watch(studySessionProvider);
 
-    if (session == null) {
-      return const Scaffold(body: Center(child: Text("No PDF selected.")));
-    }
+  if (session == null) {
+    return const Scaffold(
+      body: Center(
+        child: Text("No PDF selected."),
+      ),
+    );
+  }
 
-    final aiState = ref.watch(aiLoadingProvider);
-    final aiMaterials = ref.watch(aiMaterialProvider);
+  final aiState = ref.watch(aiLoadingProvider);
 
-    final material = session == null ? null : aiMaterials[session.filePath];
+  final documentAsync =
+      ref.watch(documentProvider(session.documentId));
 
-    final isGeneratingSummary =
-        aiState.summaryStatus == AiTaskStatus.generating &&
-        aiState.filePath == session?.filePath;
+  final document = documentAsync.value;
 
-    final isSummaryReady = material?.summaryReady ?? false;
+  final isSummaryReady =
+      document?.summaryGenerated ?? false;
 
-    final isQuizLoading =
-        aiState.quizStatus == AiTaskStatus.generating &&
-        aiState.filePath == session?.filePath;
+  final isQuizReady =
+      document?.quizGenerated ?? false;
 
-    final isQuizReady = material?.quizReady ?? false;
+  final isFlashcardReady =
+      document?.flashcardsGenerated ?? false;
 
-    final isFlashcardLoading =
-        aiState.flashcardStatus == AiTaskStatus.generating &&
-        aiState.filePath == session?.filePath;
+  final isGeneratingSummary =
+      aiState.summaryStatus == AiTaskStatus.generating &&
+      aiState.filePath == session.filePath;
 
-    final isFlashcardReady = material?.flashcardsReady ?? false;
+  final isQuizLoading =
+      aiState.quizStatus == AiTaskStatus.generating &&
+      aiState.filePath == session.filePath;
 
-    final isBusy =
-        aiState.summaryStatus == AiTaskStatus.generating ||
-        aiState.quizStatus == AiTaskStatus.generating ||
-        aiState.flashcardStatus == AiTaskStatus.generating;
+  final isFlashcardLoading =
+      aiState.flashcardStatus == AiTaskStatus.generating &&
+      aiState.filePath == session.filePath;
+
+  final isBusy =
+      aiState.summaryStatus == AiTaskStatus.generating ||
+      aiState.quizStatus == AiTaskStatus.generating ||
+      aiState.flashcardStatus == AiTaskStatus.generating;
 
     return Scaffold(
       appBar: AppBar(title: const Text("Study Material")),
@@ -108,11 +121,12 @@ class StudyMaterialScreen extends ConsumerWidget {
                             .generateSummary(
                               filePath: session.filePath,
                               fileName: session.fileName,
+                              documentId: session.documentId,
                             );
                       },
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.black,
-                elevation: 5, // Shadow
+               elevation: 2,// Shadow
                 padding: const EdgeInsets.symmetric(
                   horizontal: 30,
                   vertical: 15,
@@ -211,11 +225,12 @@ class StudyMaterialScreen extends ConsumerWidget {
                             .generateQuiz(
                               filePath: session.filePath,
                               fileName: session.fileName,
+                              documentId: session.documentId,
                             );
                       },
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.black,
-                elevation: 5, // Shadow
+               elevation: 2,// Shadow
                 padding: const EdgeInsets.symmetric(
                   horizontal: 30,
                   vertical: 15,
@@ -311,10 +326,11 @@ class StudyMaterialScreen extends ConsumerWidget {
                             .generateFlashcards(
                               filePath: session.filePath,
                               fileName: session.fileName,
+                              documentId: session.documentId,
                             );
                       },
               style: ElevatedButton.styleFrom(
-                elevation: 5, // Shadow
+               elevation: 2,// Shadow
                 padding: const EdgeInsets.symmetric(
                   horizontal: 30,
                   vertical: 15,
@@ -426,7 +442,7 @@ class StudyMaterialScreen extends ConsumerWidget {
                 );
               },
               style: ElevatedButton.styleFrom(
-                elevation: 5, // Shadow
+               elevation: 2,// Shadow
                 padding: const EdgeInsets.symmetric(
                   horizontal: 30,
                   vertical: 15,

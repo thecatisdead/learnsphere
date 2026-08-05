@@ -27,33 +27,77 @@ class _MainNavigationState extends State<MainNavigation> {
     return Scaffold(
       body: pages[currentIndex],
 
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: currentIndex,
+      bottomNavigationBar: NavigationBarTheme(
+        data: NavigationBarThemeData(
+          height: 72,
 
-        onDestinationSelected: (index) {
-          setState(() {
-            currentIndex = index;
-          });
-        },
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
 
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home),
-            label: "Home",
+          elevation: 0,
+
+          indicatorColor: Theme.of(
+            context,
+          ).colorScheme.primary.withOpacity(0.12),
+
+          indicatorShape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
           ),
-          NavigationDestination(
-            icon: Icon(Icons.smart_toy),
-            label: "AI",
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.calendar_month),
-            label: "Planner",
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person),
-            label: "Profile",
-          ),
-        ],
+
+          labelTextStyle: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return const TextStyle(fontSize: 12, fontWeight: FontWeight.w600);
+            }
+
+            return const TextStyle(fontSize: 12, fontWeight: FontWeight.w500);
+          }),
+
+          iconTheme: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return IconThemeData(
+                size: 23,
+                color: Theme.of(context).colorScheme.primary,
+              );
+            }
+
+            return IconThemeData(size: 22, color: Colors.grey.shade600);
+          }),
+        ),
+
+        child: NavigationBar(
+          selectedIndex: currentIndex,
+
+          onDestinationSelected: (index) {
+            setState(() {
+              currentIndex = index;
+            });
+          },
+
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.home_outlined),
+              selectedIcon: Icon(Icons.home_rounded),
+              label: "Home",
+            ),
+
+            NavigationDestination(
+              icon: Icon(Icons.auto_awesome_outlined),
+              selectedIcon: Icon(Icons.auto_awesome_rounded),
+              label: "AI",
+            ),
+
+            NavigationDestination(
+              icon: Icon(Icons.calendar_today_outlined),
+              selectedIcon: Icon(Icons.calendar_today_rounded),
+              label: "Planner",
+            ),
+
+            NavigationDestination(
+              icon: Icon(Icons.person_outline_rounded),
+              selectedIcon: Icon(Icons.person_rounded),
+              label: "Profile",
+            ),
+          ],
+        ),
       ),
     );
   }

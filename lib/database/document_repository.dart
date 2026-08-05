@@ -6,6 +6,36 @@ class DocumentRepository {
 
   DocumentRepository(this.db);
 
+  Future<void> markSummaryGenerated(String documentId) async {
+    await (db.update(db.documents)
+      ..where((doc) => doc.id.equals(documentId))).write(
+      DocumentsCompanion(
+        summaryGenerated: const Value(true),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  Future<void> markQuizGenerated(String documentId) async {
+    await (db.update(db.documents)
+      ..where((doc) => doc.id.equals(documentId))).write(
+      DocumentsCompanion(
+        quizGenerated: const Value(true),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  Future<void> markFlashcardsGenerated(String documentId) async {
+    await (db.update(db.documents)
+      ..where((doc) => doc.id.equals(documentId))).write(
+      DocumentsCompanion(
+        flashcardsGenerated: const Value(true),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
   Future<void> deleteDocument(String documentId) async {
     await (db.delete(db.documents)
       ..where((document) => document.id.equals(documentId))).go();

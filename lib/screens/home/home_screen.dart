@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:learnsphere/screens/home/widgets/todays_goal.dart';
 import 'widgets/continue_learning_card.dart';
 import 'widgets/greeting_header.dart';
-import 'widgets/ai_recommendation_card.dart';
 import 'widgets/recent_material.dart';
 import 'widgets/upload_card.dart';
 import 'package:file_picker/file_picker.dart';
@@ -17,12 +15,10 @@ import '../../providers/pdf_text_provider.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../database/database_provider.dart';
-import '../../database/chat_repository.dart';
 import 'package:learnsphere/providers/chat_session_provider.dart';
-import 'package:uuid/uuid.dart';
-import 'package:learnsphere/database/database_provider.dart';
 import 'package:learnsphere/database/document_repository.dart';
 import 'package:learnsphere/services/file_hash_service.dart';
+import '../../providers/document_provider.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -39,7 +35,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     Future.microtask(() async {
       await ref.read(chatSessionsProvider.notifier).loadAllChats();
-
       await ref.read(recentMaterialsProvider.notifier).loadMaterials();
     });
   }
@@ -47,26 +42,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final recentMaterials = ref.watch(recentMaterialsProvider);
-    final aiMaterials = ref.watch(aiMaterialProvider);
 
     final session = ref.watch(studySessionProvider);
 
-    final aiMaterial = session == null ? null : aiMaterials[session.filePath];
+    final documentAsync =
+        session == null
+            ? null
+            : ref.watch(documentProvider(session.documentId));
+
+    final document = documentAsync?.value;
 
     return Scaffold(
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          SizedBox(height: 60),
+          SizedBox(height: 30),
           GreetingHeader(),
           SizedBox(height: 20),
 
           if (session != null)
             ContinueLearningCard(
               session: session,
-              summaryReady: aiMaterial?.summaryReady ?? false,
-              quizReady: aiMaterial?.quizReady ?? false,
-              flashcardsReady: aiMaterial?.flashcardsReady ?? false,
+              summaryReady: document?.summaryGenerated ?? false,
+              quizReady: document?.quizGenerated ?? false,
+              flashcardsReady: document?.flashcardsGenerated ?? false,
               onTap: () {
                 Navigator.push(
                   context,
@@ -188,10 +187,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 // --------------------------------------------------
                 // 7. Set current study session
                 // --------------------------------------------------
-
-                ref.read(studySessionProvider.notifier).setSession(session);
-
-                print("✅ STUDY SESSION SET");
               } catch (e) {
                 print("❌ PDF UPLOAD ERROR: $e");
 

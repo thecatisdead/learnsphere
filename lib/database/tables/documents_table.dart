@@ -8,8 +8,17 @@ class Documents extends Table {
   TextColumn get filePath => text()();
 
   // SHA-256 hash of the PDF contents.
-  // This lets us recognize the same PDF after it is removed and uploaded again.
   TextColumn get contentHash => text().unique()();
+
+  // AI generation state
+  BoolColumn get summaryGenerated =>
+      boolean().withDefault(const Constant(false))();
+
+  BoolColumn get quizGenerated =>
+      boolean().withDefault(const Constant(false))();
+
+  BoolColumn get flashcardsGenerated =>
+      boolean().withDefault(const Constant(false))();
 
   DateTimeColumn get createdAt => dateTime()();
 

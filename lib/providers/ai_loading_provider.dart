@@ -10,6 +10,9 @@ import '../../models/summary.dart';
 import '../providers/ai_material_provider.dart';
 
 import '../providers/pdf_text_provider.dart';
+import 'package:learnsphere/database/database_provider.dart';
+import '../database/document_repository.dart';
+import '../providers/document_provider.dart';
 
 enum AiTask { none, summary, quiz, flashcards }
 
@@ -133,6 +136,7 @@ class AiLoadingNotifier extends Notifier<AiGenerationState> {
   Future<void> generateSummary({
     required String filePath,
     required String fileName,
+    required String documentId,
   }) async {
     start(AiTask.summary, filePath);
 
@@ -147,6 +151,12 @@ class AiLoadingNotifier extends Notifier<AiGenerationState> {
 
       ref.read(aiMaterialProvider.notifier).setSummaryReady(filePath);
 
+      final documentRepository = DocumentRepository(ref.read(databaseProvider));
+
+      await documentRepository.markSummaryGenerated(documentId);
+
+      ref.invalidate(documentProvider(documentId));
+
       finish(AiTask.summary);
     } catch (e) {
       error(AiTask.summary);
@@ -157,6 +167,7 @@ class AiLoadingNotifier extends Notifier<AiGenerationState> {
   Future<void> generateQuiz({
     required String filePath,
     required String fileName,
+    required String documentId,
   }) async {
     start(AiTask.quiz, filePath);
 
@@ -170,6 +181,12 @@ class AiLoadingNotifier extends Notifier<AiGenerationState> {
       ref.read(quizProvider.notifier).setQuiz(filePath, quiz);
       ref.read(aiMaterialProvider.notifier).setQuizReady(filePath);
 
+      final documentRepository = DocumentRepository(ref.read(databaseProvider));
+
+      await documentRepository.markQuizGenerated(documentId);
+
+      ref.invalidate(documentProvider(documentId));
+
       finish(AiTask.quiz);
     } catch (e) {
       error(AiTask.quiz);
@@ -180,6 +197,7 @@ class AiLoadingNotifier extends Notifier<AiGenerationState> {
   Future<void> generateFlashcards({
     required String filePath,
     required String fileName,
+    required String documentId,
   }) async {
     start(AiTask.flashcards, filePath);
 
@@ -193,6 +211,12 @@ class AiLoadingNotifier extends Notifier<AiGenerationState> {
           .setFlashcardDeck(filePath, flashcards);
 
       ref.read(aiMaterialProvider.notifier).setFlashcardsReady(filePath);
+
+      final documentRepository = DocumentRepository(ref.read(databaseProvider));
+
+      await documentRepository.markFlashcardsGenerated(documentId);
+
+      ref.invalidate(documentProvider(documentId));
 
       finish(AiTask.flashcards);
     } catch (e) {

@@ -23,8 +23,13 @@ _.seed
 
 lib-cov
 
-# Coverage directory used by tools like istanbul
 
+# Local SQLite database
+*.sqlite
+*.sqlite3
+*.db
+
+# Coverage directory used by tools like istanbul
 coverage
 \*.lcov
 
