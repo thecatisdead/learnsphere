@@ -1326,12 +1326,237 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
   }
 }
 
+class $SummariesTable extends Summaries
+    with TableInfo<$SummariesTable, Summary> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SummariesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _documentIdMeta = const VerificationMeta(
+    'documentId',
+  );
+  @override
+  late final GeneratedColumn<String> documentId = GeneratedColumn<String>(
+    'document_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _summaryTextMeta = const VerificationMeta(
+    'summaryText',
+  );
+  @override
+  late final GeneratedColumn<String> summaryText = GeneratedColumn<String>(
+    'summary_text',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [documentId, summaryText];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'summaries';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Summary> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('document_id')) {
+      context.handle(
+        _documentIdMeta,
+        documentId.isAcceptableOrUnknown(data['document_id']!, _documentIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_documentIdMeta);
+    }
+    if (data.containsKey('summary_text')) {
+      context.handle(
+        _summaryTextMeta,
+        summaryText.isAcceptableOrUnknown(
+          data['summary_text']!,
+          _summaryTextMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_summaryTextMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {documentId};
+  @override
+  Summary map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Summary(
+      documentId:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}document_id'],
+          )!,
+      summaryText:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}summary_text'],
+          )!,
+    );
+  }
+
+  @override
+  $SummariesTable createAlias(String alias) {
+    return $SummariesTable(attachedDatabase, alias);
+  }
+}
+
+class Summary extends DataClass implements Insertable<Summary> {
+  final String documentId;
+  final String summaryText;
+  const Summary({required this.documentId, required this.summaryText});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['document_id'] = Variable<String>(documentId);
+    map['summary_text'] = Variable<String>(summaryText);
+    return map;
+  }
+
+  SummariesCompanion toCompanion(bool nullToAbsent) {
+    return SummariesCompanion(
+      documentId: Value(documentId),
+      summaryText: Value(summaryText),
+    );
+  }
+
+  factory Summary.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Summary(
+      documentId: serializer.fromJson<String>(json['documentId']),
+      summaryText: serializer.fromJson<String>(json['summaryText']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'documentId': serializer.toJson<String>(documentId),
+      'summaryText': serializer.toJson<String>(summaryText),
+    };
+  }
+
+  Summary copyWith({String? documentId, String? summaryText}) => Summary(
+    documentId: documentId ?? this.documentId,
+    summaryText: summaryText ?? this.summaryText,
+  );
+  Summary copyWithCompanion(SummariesCompanion data) {
+    return Summary(
+      documentId:
+          data.documentId.present ? data.documentId.value : this.documentId,
+      summaryText:
+          data.summaryText.present ? data.summaryText.value : this.summaryText,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Summary(')
+          ..write('documentId: $documentId, ')
+          ..write('summaryText: $summaryText')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(documentId, summaryText);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Summary &&
+          other.documentId == this.documentId &&
+          other.summaryText == this.summaryText);
+}
+
+class SummariesCompanion extends UpdateCompanion<Summary> {
+  final Value<String> documentId;
+  final Value<String> summaryText;
+  final Value<int> rowid;
+  const SummariesCompanion({
+    this.documentId = const Value.absent(),
+    this.summaryText = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SummariesCompanion.insert({
+    required String documentId,
+    required String summaryText,
+    this.rowid = const Value.absent(),
+  }) : documentId = Value(documentId),
+       summaryText = Value(summaryText);
+  static Insertable<Summary> custom({
+    Expression<String>? documentId,
+    Expression<String>? summaryText,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (documentId != null) 'document_id': documentId,
+      if (summaryText != null) 'summary_text': summaryText,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SummariesCompanion copyWith({
+    Value<String>? documentId,
+    Value<String>? summaryText,
+    Value<int>? rowid,
+  }) {
+    return SummariesCompanion(
+      documentId: documentId ?? this.documentId,
+      summaryText: summaryText ?? this.summaryText,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (documentId.present) {
+      map['document_id'] = Variable<String>(documentId.value);
+    }
+    if (summaryText.present) {
+      map['summary_text'] = Variable<String>(summaryText.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SummariesCompanion(')
+          ..write('documentId: $documentId, ')
+          ..write('summaryText: $summaryText, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $DocumentsTable documents = $DocumentsTable(this);
   late final $ChatSessionsTable chatSessions = $ChatSessionsTable(this);
   late final $ChatMessagesTable chatMessages = $ChatMessagesTable(this);
+  late final $SummariesTable summaries = $SummariesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1340,6 +1565,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     documents,
     chatSessions,
     chatMessages,
+    summaries,
   ];
 }
 
@@ -2042,6 +2268,154 @@ typedef $$ChatMessagesTableProcessedTableManager =
       ChatMessage,
       PrefetchHooks Function()
     >;
+typedef $$SummariesTableCreateCompanionBuilder =
+    SummariesCompanion Function({
+      required String documentId,
+      required String summaryText,
+      Value<int> rowid,
+    });
+typedef $$SummariesTableUpdateCompanionBuilder =
+    SummariesCompanion Function({
+      Value<String> documentId,
+      Value<String> summaryText,
+      Value<int> rowid,
+    });
+
+class $$SummariesTableFilterComposer
+    extends Composer<_$AppDatabase, $SummariesTable> {
+  $$SummariesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get documentId => $composableBuilder(
+    column: $table.documentId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get summaryText => $composableBuilder(
+    column: $table.summaryText,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SummariesTableOrderingComposer
+    extends Composer<_$AppDatabase, $SummariesTable> {
+  $$SummariesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get documentId => $composableBuilder(
+    column: $table.documentId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get summaryText => $composableBuilder(
+    column: $table.summaryText,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SummariesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SummariesTable> {
+  $$SummariesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get documentId => $composableBuilder(
+    column: $table.documentId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get summaryText => $composableBuilder(
+    column: $table.summaryText,
+    builder: (column) => column,
+  );
+}
+
+class $$SummariesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SummariesTable,
+          Summary,
+          $$SummariesTableFilterComposer,
+          $$SummariesTableOrderingComposer,
+          $$SummariesTableAnnotationComposer,
+          $$SummariesTableCreateCompanionBuilder,
+          $$SummariesTableUpdateCompanionBuilder,
+          (Summary, BaseReferences<_$AppDatabase, $SummariesTable, Summary>),
+          Summary,
+          PrefetchHooks Function()
+        > {
+  $$SummariesTableTableManager(_$AppDatabase db, $SummariesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer:
+              () => $$SummariesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer:
+              () => $$SummariesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer:
+              () => $$SummariesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> documentId = const Value.absent(),
+                Value<String> summaryText = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SummariesCompanion(
+                documentId: documentId,
+                summaryText: summaryText,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String documentId,
+                required String summaryText,
+                Value<int> rowid = const Value.absent(),
+              }) => SummariesCompanion.insert(
+                documentId: documentId,
+                summaryText: summaryText,
+                rowid: rowid,
+              ),
+          withReferenceMapper:
+              (p0) =>
+                  p0
+                      .map(
+                        (e) => (
+                          e.readTable(table),
+                          BaseReferences(db, table, e),
+                        ),
+                      )
+                      .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SummariesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SummariesTable,
+      Summary,
+      $$SummariesTableFilterComposer,
+      $$SummariesTableOrderingComposer,
+      $$SummariesTableAnnotationComposer,
+      $$SummariesTableCreateCompanionBuilder,
+      $$SummariesTableUpdateCompanionBuilder,
+      (Summary, BaseReferences<_$AppDatabase, $SummariesTable, Summary>),
+      Summary,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2052,4 +2426,6 @@ class $AppDatabaseManager {
       $$ChatSessionsTableTableManager(_db, _db.chatSessions);
   $$ChatMessagesTableTableManager get chatMessages =>
       $$ChatMessagesTableTableManager(_db, _db.chatMessages);
+  $$SummariesTableTableManager get summaries =>
+      $$SummariesTableTableManager(_db, _db.summaries);
 }

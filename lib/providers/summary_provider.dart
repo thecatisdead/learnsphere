@@ -1,20 +1,20 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/summary.dart';
 
-class SummaryNotifier extends Notifier<Map<String, Summary>> {
+class SummaryNotifier extends Notifier<Map<String, SummaryModel >> {
   @override
-  Map<String, Summary> build() {
+  Map<String, SummaryModel > build() {
     return {};
   }
 
-  void setSummary(String filePath, Summary summary) {
+  void setSummary(String filePath, SummaryModel  summary) {
     state = {
       ...state,
       filePath: summary,
     };
   }
 
-  Summary? getSummary(String filePath) {
+  SummaryModel ? getSummary(String filePath) {
     return state[filePath];
   }
 
@@ -30,6 +30,6 @@ class SummaryNotifier extends Notifier<Map<String, Summary>> {
 }
 
 final summaryProvider =
-    NotifierProvider<SummaryNotifier, Map<String, Summary>>(
+    NotifierProvider<SummaryNotifier, Map<String, SummaryModel >>(
   SummaryNotifier.new,
 );

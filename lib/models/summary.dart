@@ -1,6 +1,6 @@
-class Summary {
+class SummaryModel  {
   final String fileName;
   final String text;
 
-  const Summary({required this.fileName, required this.text});
+  const SummaryModel ({required this.fileName, required this.text});
 }

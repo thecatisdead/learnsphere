@@ -145,7 +145,9 @@ class AiLoadingNotifier extends Notifier<AiGenerationState> {
 
       final summaryText = await AiService.generateSummary(text);
 
-      final summary = Summary(fileName: fileName, text: summaryText);
+      print("✅ Summary generated");
+
+      final summary = SummaryModel (fileName: fileName, text: summaryText);
 
       ref.read(summaryProvider.notifier).setSummary(filePath, summary);
 
@@ -153,7 +155,30 @@ class AiLoadingNotifier extends Notifier<AiGenerationState> {
 
       final documentRepository = DocumentRepository(ref.read(databaseProvider));
 
+      ref.read(summaryProvider.notifier).setSummary(filePath, summary);
+
+      ref.read(aiMaterialProvider.notifier).setSummaryReady(filePath);
+
       await documentRepository.markSummaryGenerated(documentId);
+
+      await documentRepository.saveSummary(
+        documentId: documentId,
+        summary: summaryText,
+      );
+
+      print("✅ saveSummary finished");
+
+      final saved = await documentRepository.getSummary(documentId);
+
+      print("OBJECT: $saved");
+
+      if (saved != null) {
+        print("ID: ${saved.documentId}");
+        print("TEXT: ${saved.summaryText}");
+      }
+
+      print("📖 LOADED FROM SQLITE:");
+      print(saved?.summaryText);
 
       ref.invalidate(documentProvider(documentId));
 

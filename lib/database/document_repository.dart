@@ -1,10 +1,43 @@
 import 'package:drift/drift.dart';
 import 'package:learnsphere/database/app_database.dart';
+import 'tables/summaries_table.dart';
 
 class DocumentRepository {
   final AppDatabase db;
 
   DocumentRepository(this.db);
+
+  Future<void> saveSummary({
+    required String documentId,
+    required String summary,
+  }) async {
+    print("💾 SAVING SUMMARY");
+
+    await db
+        .into(db.summaries)
+        .insertOnConflictUpdate(
+          SummariesCompanion.insert(
+            documentId: documentId,
+            summaryText: summary,
+          ),
+        );
+
+    print("✅ INSERT FINISHED");
+
+    final rows = await db.select(db.summaries).get();
+
+    print("📚 ROW COUNT: ${rows.length}");
+
+    for (final row in rows) {
+      print("ID: ${row.documentId}");
+      print("TEXT LENGTH: ${row.summaryText.length}");
+    }
+  }
+
+  Future<Summary?> getSummary(String documentId) {
+    return (db.select(db.summaries)
+      ..where((tbl) => tbl.documentId.equals(documentId))).getSingleOrNull();
+  }
 
   Future<void> markSummaryGenerated(String documentId) async {
     await (db.update(db.documents)

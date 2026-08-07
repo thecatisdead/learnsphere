@@ -8,6 +8,7 @@ import 'package:path/path.dart' as p;
 import 'tables/chat_sessions_table.dart';
 import 'tables/chat_messages_table.dart';
 import 'tables/documents_table.dart';
+import 'tables/summaries_table.dart';
 
 part 'app_database.g.dart';
 
@@ -16,13 +17,14 @@ part 'app_database.g.dart';
     Documents,
     ChatSessions,
     ChatMessages,
+    Summaries,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration {
