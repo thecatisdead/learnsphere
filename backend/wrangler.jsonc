@@ -7,6 +7,11 @@
 	"name": "backend",
 	"main": "src/index.js",
 	"compatibility_date": "2026-08-01",
+	"placement": { "mode": "smart" },
+	"vars": {
+    "PROXY_URL": "https://gemini-proxy-zel5.onrender.com"
+  	},
+
 	"observability": {
 		"enabled": true
 	},
