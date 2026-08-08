@@ -17,54 +17,45 @@ import '../../database/chat_repository.dart';
 import '../../database/document_repository.dart';
 import '../../providers/document_provider.dart';
 
-
 class StudyMaterialScreen extends ConsumerWidget {
   const StudyMaterialScreen({super.key});
 
-@override
-Widget build(BuildContext context, WidgetRef ref) {
-  final session = ref.watch(studySessionProvider);
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final session = ref.watch(studySessionProvider);
 
-  if (session == null) {
-    return const Scaffold(
-      body: Center(
-        child: Text("No PDF selected."),
-      ),
-    );
-  }
+    if (session == null) {
+      return const Scaffold(body: Center(child: Text("No PDF selected.")));
+    }
 
-  final aiState = ref.watch(aiLoadingProvider);
+    final aiState = ref.watch(aiLoadingProvider);
 
-  final documentAsync =
-      ref.watch(documentProvider(session.documentId));
+    final documentAsync = ref.watch(documentProvider(session.documentId));
 
-  final document = documentAsync.value;
+    final document = documentAsync.value;
 
-  final isSummaryReady =
-      document?.summaryGenerated ?? false;
+    final isSummaryReady = document?.summaryGenerated ?? false;
 
-  final isQuizReady =
-      document?.quizGenerated ?? false;
+    final isQuizReady = document?.quizGenerated ?? false;
 
-  final isFlashcardReady =
-      document?.flashcardsGenerated ?? false;
+    final isFlashcardReady = document?.flashcardsGenerated ?? false;
 
-  final isGeneratingSummary =
-      aiState.summaryStatus == AiTaskStatus.generating &&
-      aiState.filePath == session.filePath;
+    final isGeneratingSummary =
+        aiState.summaryStatus == AiTaskStatus.generating &&
+        aiState.filePath == session.filePath;
 
-  final isQuizLoading =
-      aiState.quizStatus == AiTaskStatus.generating &&
-      aiState.filePath == session.filePath;
+    final isQuizLoading =
+        aiState.quizStatus == AiTaskStatus.generating &&
+        aiState.filePath == session.filePath;
 
-  final isFlashcardLoading =
-      aiState.flashcardStatus == AiTaskStatus.generating &&
-      aiState.filePath == session.filePath;
+    final isFlashcardLoading =
+        aiState.flashcardStatus == AiTaskStatus.generating &&
+        aiState.filePath == session.filePath;
 
-  final isBusy =
-      aiState.summaryStatus == AiTaskStatus.generating ||
-      aiState.quizStatus == AiTaskStatus.generating ||
-      aiState.flashcardStatus == AiTaskStatus.generating;
+    final isBusy =
+        aiState.summaryStatus == AiTaskStatus.generating ||
+        aiState.quizStatus == AiTaskStatus.generating ||
+        aiState.flashcardStatus == AiTaskStatus.generating;
 
     return Scaffold(
       appBar: AppBar(title: const Text("Study Material")),
@@ -110,7 +101,12 @@ Widget build(BuildContext context, WidgetRef ref) {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => const SummaryScreen(),
+                              builder:
+                                  (_) => SummaryScreen(
+                                    documentId: session.documentId,
+                                    filePath: session.filePath,
+                                    fileName: session.fileName,
+                                  ),
                             ),
                           );
                           return;
@@ -126,7 +122,7 @@ Widget build(BuildContext context, WidgetRef ref) {
                       },
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.black,
-               elevation: 2,// Shadow
+                elevation: 2, // Shadow
                 padding: const EdgeInsets.symmetric(
                   horizontal: 30,
                   vertical: 15,
@@ -188,7 +184,7 @@ Widget build(BuildContext context, WidgetRef ref) {
                             ),
                           ),
 
-                      const Text(
+                      Text(
                         "AI-powered notes",
                         style: TextStyle(
                           fontSize: 12,
@@ -230,7 +226,7 @@ Widget build(BuildContext context, WidgetRef ref) {
                       },
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.black,
-               elevation: 2,// Shadow
+                elevation: 2, // Shadow
                 padding: const EdgeInsets.symmetric(
                   horizontal: 30,
                   vertical: 15,
@@ -330,7 +326,7 @@ Widget build(BuildContext context, WidgetRef ref) {
                             );
                       },
               style: ElevatedButton.styleFrom(
-               elevation: 2,// Shadow
+                elevation: 2, // Shadow
                 padding: const EdgeInsets.symmetric(
                   horizontal: 30,
                   vertical: 15,
@@ -442,7 +438,7 @@ Widget build(BuildContext context, WidgetRef ref) {
                 );
               },
               style: ElevatedButton.styleFrom(
-               elevation: 2,// Shadow
+                elevation: 2, // Shadow
                 padding: const EdgeInsets.symmetric(
                   horizontal: 30,
                   vertical: 15,

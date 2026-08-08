@@ -1,6 +1,5 @@
 import 'package:drift/drift.dart';
 import 'package:learnsphere/database/app_database.dart';
-import 'tables/summaries_table.dart';
 
 class DocumentRepository {
   final AppDatabase db;
