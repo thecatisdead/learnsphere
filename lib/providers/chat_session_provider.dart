@@ -11,10 +11,6 @@ class ChatSessionsNotifier extends Notifier<List<ChatSession>> {
     return [];
   }
 
-  // --------------------------------------------------
-  // CREATE NEW CHAT
-  // --------------------------------------------------
-
   Future<String> createChat({required String documentId}) async {
     final chatId = const Uuid().v4();
     final now = DateTime.now();

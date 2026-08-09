@@ -1550,6 +1550,225 @@ class SummariesCompanion extends UpdateCompanion<Summary> {
   }
 }
 
+class $QuizzesTable extends Quizzes with TableInfo<$QuizzesTable, Quizze> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $QuizzesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _documentIdMeta = const VerificationMeta(
+    'documentId',
+  );
+  @override
+  late final GeneratedColumn<String> documentId = GeneratedColumn<String>(
+    'document_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _quizJsonMeta = const VerificationMeta(
+    'quizJson',
+  );
+  @override
+  late final GeneratedColumn<String> quizJson = GeneratedColumn<String>(
+    'quiz_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [documentId, quizJson];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'quizzes';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Quizze> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('document_id')) {
+      context.handle(
+        _documentIdMeta,
+        documentId.isAcceptableOrUnknown(data['document_id']!, _documentIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_documentIdMeta);
+    }
+    if (data.containsKey('quiz_json')) {
+      context.handle(
+        _quizJsonMeta,
+        quizJson.isAcceptableOrUnknown(data['quiz_json']!, _quizJsonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_quizJsonMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {documentId};
+  @override
+  Quizze map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Quizze(
+      documentId:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}document_id'],
+          )!,
+      quizJson:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}quiz_json'],
+          )!,
+    );
+  }
+
+  @override
+  $QuizzesTable createAlias(String alias) {
+    return $QuizzesTable(attachedDatabase, alias);
+  }
+}
+
+class Quizze extends DataClass implements Insertable<Quizze> {
+  final String documentId;
+  final String quizJson;
+  const Quizze({required this.documentId, required this.quizJson});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['document_id'] = Variable<String>(documentId);
+    map['quiz_json'] = Variable<String>(quizJson);
+    return map;
+  }
+
+  QuizzesCompanion toCompanion(bool nullToAbsent) {
+    return QuizzesCompanion(
+      documentId: Value(documentId),
+      quizJson: Value(quizJson),
+    );
+  }
+
+  factory Quizze.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Quizze(
+      documentId: serializer.fromJson<String>(json['documentId']),
+      quizJson: serializer.fromJson<String>(json['quizJson']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'documentId': serializer.toJson<String>(documentId),
+      'quizJson': serializer.toJson<String>(quizJson),
+    };
+  }
+
+  Quizze copyWith({String? documentId, String? quizJson}) => Quizze(
+    documentId: documentId ?? this.documentId,
+    quizJson: quizJson ?? this.quizJson,
+  );
+  Quizze copyWithCompanion(QuizzesCompanion data) {
+    return Quizze(
+      documentId:
+          data.documentId.present ? data.documentId.value : this.documentId,
+      quizJson: data.quizJson.present ? data.quizJson.value : this.quizJson,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Quizze(')
+          ..write('documentId: $documentId, ')
+          ..write('quizJson: $quizJson')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(documentId, quizJson);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Quizze &&
+          other.documentId == this.documentId &&
+          other.quizJson == this.quizJson);
+}
+
+class QuizzesCompanion extends UpdateCompanion<Quizze> {
+  final Value<String> documentId;
+  final Value<String> quizJson;
+  final Value<int> rowid;
+  const QuizzesCompanion({
+    this.documentId = const Value.absent(),
+    this.quizJson = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  QuizzesCompanion.insert({
+    required String documentId,
+    required String quizJson,
+    this.rowid = const Value.absent(),
+  }) : documentId = Value(documentId),
+       quizJson = Value(quizJson);
+  static Insertable<Quizze> custom({
+    Expression<String>? documentId,
+    Expression<String>? quizJson,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (documentId != null) 'document_id': documentId,
+      if (quizJson != null) 'quiz_json': quizJson,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  QuizzesCompanion copyWith({
+    Value<String>? documentId,
+    Value<String>? quizJson,
+    Value<int>? rowid,
+  }) {
+    return QuizzesCompanion(
+      documentId: documentId ?? this.documentId,
+      quizJson: quizJson ?? this.quizJson,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (documentId.present) {
+      map['document_id'] = Variable<String>(documentId.value);
+    }
+    if (quizJson.present) {
+      map['quiz_json'] = Variable<String>(quizJson.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('QuizzesCompanion(')
+          ..write('documentId: $documentId, ')
+          ..write('quizJson: $quizJson, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1557,6 +1776,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ChatSessionsTable chatSessions = $ChatSessionsTable(this);
   late final $ChatMessagesTable chatMessages = $ChatMessagesTable(this);
   late final $SummariesTable summaries = $SummariesTable(this);
+  late final $QuizzesTable quizzes = $QuizzesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1566,6 +1786,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     chatSessions,
     chatMessages,
     summaries,
+    quizzes,
   ];
 }
 
@@ -2416,6 +2637,152 @@ typedef $$SummariesTableProcessedTableManager =
       Summary,
       PrefetchHooks Function()
     >;
+typedef $$QuizzesTableCreateCompanionBuilder =
+    QuizzesCompanion Function({
+      required String documentId,
+      required String quizJson,
+      Value<int> rowid,
+    });
+typedef $$QuizzesTableUpdateCompanionBuilder =
+    QuizzesCompanion Function({
+      Value<String> documentId,
+      Value<String> quizJson,
+      Value<int> rowid,
+    });
+
+class $$QuizzesTableFilterComposer
+    extends Composer<_$AppDatabase, $QuizzesTable> {
+  $$QuizzesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get documentId => $composableBuilder(
+    column: $table.documentId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get quizJson => $composableBuilder(
+    column: $table.quizJson,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$QuizzesTableOrderingComposer
+    extends Composer<_$AppDatabase, $QuizzesTable> {
+  $$QuizzesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get documentId => $composableBuilder(
+    column: $table.documentId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get quizJson => $composableBuilder(
+    column: $table.quizJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$QuizzesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $QuizzesTable> {
+  $$QuizzesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get documentId => $composableBuilder(
+    column: $table.documentId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get quizJson =>
+      $composableBuilder(column: $table.quizJson, builder: (column) => column);
+}
+
+class $$QuizzesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $QuizzesTable,
+          Quizze,
+          $$QuizzesTableFilterComposer,
+          $$QuizzesTableOrderingComposer,
+          $$QuizzesTableAnnotationComposer,
+          $$QuizzesTableCreateCompanionBuilder,
+          $$QuizzesTableUpdateCompanionBuilder,
+          (Quizze, BaseReferences<_$AppDatabase, $QuizzesTable, Quizze>),
+          Quizze,
+          PrefetchHooks Function()
+        > {
+  $$QuizzesTableTableManager(_$AppDatabase db, $QuizzesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer:
+              () => $$QuizzesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer:
+              () => $$QuizzesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer:
+              () => $$QuizzesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> documentId = const Value.absent(),
+                Value<String> quizJson = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => QuizzesCompanion(
+                documentId: documentId,
+                quizJson: quizJson,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String documentId,
+                required String quizJson,
+                Value<int> rowid = const Value.absent(),
+              }) => QuizzesCompanion.insert(
+                documentId: documentId,
+                quizJson: quizJson,
+                rowid: rowid,
+              ),
+          withReferenceMapper:
+              (p0) =>
+                  p0
+                      .map(
+                        (e) => (
+                          e.readTable(table),
+                          BaseReferences(db, table, e),
+                        ),
+                      )
+                      .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$QuizzesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $QuizzesTable,
+      Quizze,
+      $$QuizzesTableFilterComposer,
+      $$QuizzesTableOrderingComposer,
+      $$QuizzesTableAnnotationComposer,
+      $$QuizzesTableCreateCompanionBuilder,
+      $$QuizzesTableUpdateCompanionBuilder,
+      (Quizze, BaseReferences<_$AppDatabase, $QuizzesTable, Quizze>),
+      Quizze,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2428,4 +2795,6 @@ class $AppDatabaseManager {
       $$ChatMessagesTableTableManager(_db, _db.chatMessages);
   $$SummariesTableTableManager get summaries =>
       $$SummariesTableTableManager(_db, _db.summaries);
+  $$QuizzesTableTableManager get quizzes =>
+      $$QuizzesTableTableManager(_db, _db.quizzes);
 }
