@@ -210,7 +210,11 @@ class StudyMaterialScreen extends ConsumerWidget {
                             context,
                             MaterialPageRoute(
                               builder:
-                                  (_) => QuizScreen(fileName: session.fileName),
+                                  (_) => QuizScreen(
+                                    documentId: session.documentId,
+                                    filePath: session.filePath,
+                                    fileName: session.fileName,
+                                  ),
                             ),
                           );
                           return;

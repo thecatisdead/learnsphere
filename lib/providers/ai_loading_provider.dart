@@ -147,7 +147,7 @@ class AiLoadingNotifier extends Notifier<AiGenerationState> {
 
       print("✅ Summary generated");
 
-      final summary = SummaryModel (fileName: fileName, text: summaryText);
+      final summary = SummaryModel(fileName: fileName, text: summaryText);
 
       ref.read(summaryProvider.notifier).setSummary(filePath, summary);
 
@@ -189,7 +189,7 @@ class AiLoadingNotifier extends Notifier<AiGenerationState> {
     }
   }
 
-  Future<void> generateQuiz({
+  Future generateQuiz({
     required String filePath,
     required String fileName,
     required String documentId,
@@ -204,9 +204,16 @@ class AiLoadingNotifier extends Notifier<AiGenerationState> {
       final quiz = Quiz(fileName: fileName, questions: questions);
 
       ref.read(quizProvider.notifier).setQuiz(filePath, quiz);
+
       ref.read(aiMaterialProvider.notifier).setQuizReady(filePath);
 
       final documentRepository = DocumentRepository(ref.read(databaseProvider));
+
+      print("💾 ABOUT TO SAVE QUIZ");
+
+      await documentRepository.saveQuiz(documentId: documentId, quiz: quiz);
+
+      print("✅ saveQuiz finished");
 
       await documentRepository.markQuizGenerated(documentId);
 

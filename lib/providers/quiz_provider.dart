@@ -1,6 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/quiz.dart';
 
+import '../database/document_repository.dart';
+import '../database/database_provider.dart';
+
 class QuizNotifier extends Notifier<Map<String, Quiz>> {
   @override
   Map<String, Quiz> build() {
@@ -23,6 +26,27 @@ class QuizNotifier extends Notifier<Map<String, Quiz>> {
 
   void clearAll() {
     state = {};
+  }
+
+  Future<void> loadQuiz({
+    required String documentId,
+    required String filePath,
+    required String fileName,
+  }) async {
+    final repository = DocumentRepository(ref.read(databaseProvider));
+
+    final savedQuiz = await repository.getQuiz(documentId);
+
+    print("🧠 SQLite quiz query finished");
+
+    if (savedQuiz == null) {
+      print("❌ No quiz found in SQLite");
+      return;
+    }
+
+    print("✅ Quiz found in SQLite");
+
+    setQuiz(filePath, savedQuiz);
   }
 }
 

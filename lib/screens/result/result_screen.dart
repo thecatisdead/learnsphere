@@ -9,6 +9,8 @@ class ResultScreen extends StatelessWidget {
   final String fileName;
   final List<Question> questions;
   final List<String> userAnswers;
+  final String documentId;
+  final String filePath;
 
   const ResultScreen({
     super.key,
@@ -17,6 +19,9 @@ class ResultScreen extends StatelessWidget {
     required this.fileName,
     required this.questions,
     required this.userAnswers,
+
+    required this.documentId,
+    required this.filePath,
   });
 
   @override
@@ -265,7 +270,11 @@ class ResultScreen extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                             builder: (context) {
-                              return QuizScreen(fileName: fileName);
+                              return QuizScreen(
+                                documentId: documentId,
+                                filePath: filePath,
+                                fileName: fileName,
+                              );
                             },
                           ),
                         );

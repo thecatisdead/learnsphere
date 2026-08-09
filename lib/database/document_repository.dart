@@ -1,6 +1,11 @@
 import 'package:drift/drift.dart';
 import 'package:learnsphere/database/app_database.dart';
 
+import 'dart:convert';
+
+import '../models/quiz.dart';
+import '../models/question.dart';
+
 class DocumentRepository {
   final AppDatabase db;
 
@@ -162,5 +167,63 @@ class DocumentRepository {
     final document = await getDocumentById(id);
 
     return document!;
+
+
+
+    
   }
+
+  Future<void> saveQuiz({
+  required String documentId,
+  required Quiz quiz,
+}) async {
+  print("💾 SAVING QUIZ");
+
+  final quizJson = jsonEncode({
+    'fileName': quiz.fileName,
+    'questions': quiz.questions.map((question) {
+      return {
+        'question': question.question,
+        'options': question.options,
+        'correctAnswer': question.correctAnswer,
+      };
+    }).toList(),
+  });
+
+  await db
+      .into(db.quizzes)
+      .insertOnConflictUpdate(
+        QuizzesCompanion.insert(
+          documentId: documentId,
+          quizJson: quizJson,
+        ),
+      );
+
+  print("✅ QUIZ INSERT FINISHED");
+}
+
+Future<Quiz?> getQuiz(String documentId) async {
+  final row = await (db.select(db.quizzes)
+        ..where((tbl) => tbl.documentId.equals(documentId)))
+      .getSingleOrNull();
+
+  if (row == null) {
+    return null;
+  }
+
+  final Map<String, dynamic> json = jsonDecode(row.quizJson);
+
+  final questions = (json['questions'] as List)
+      .map(
+        (question) => Question.fromJson(
+          Map<String, dynamic>.from(question),
+        ),
+      )
+      .toList();
+
+  return Quiz(
+    fileName: json['fileName'] as String,
+    questions: questions,
+  );
+}
 }

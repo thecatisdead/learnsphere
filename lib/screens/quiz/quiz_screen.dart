@@ -5,15 +5,58 @@ import '../../providers/quiz_provider.dart';
 import '../../providers/study_session_provider.dart';
 
 class QuizScreen extends ConsumerStatefulWidget {
+  final String documentId;
+  final String filePath;
   final String fileName;
 
-  const QuizScreen({super.key, required this.fileName});
+  const QuizScreen({
+    super.key,
+    required this.fileName,
+    required this.documentId,
+    required this.filePath,
+  });
 
   @override
   ConsumerState<QuizScreen> createState() => _QuizScreenState();
 }
 
 class _QuizScreenState extends ConsumerState<QuizScreen> {
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadQuiz();
+    });
+  }
+
+  Future<void> _loadQuiz() async {
+    print("🧠 load quiz called");
+
+    print("📄 Document ID: ${widget.documentId}");
+
+    final quizMap = ref.read(quizProvider);
+
+    print("📦 Riverpod quizzes: $quizMap");
+
+    final cachedQuiz = quizMap[widget.filePath];
+
+    if (cachedQuiz != null) {
+      print("⚡ Quiz found in Riverpod");
+      return;
+    }
+
+    await ref
+        .read(quizProvider.notifier)
+        .loadQuiz(
+          documentId: widget.documentId,
+          filePath: widget.filePath,
+          fileName: widget.fileName,
+        );
+
+    print("✅ loadQuiz finished");
+  }
+
   int currentQuestion = 0;
   int score = 0;
 
@@ -89,6 +132,8 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
                           fileName: widget.fileName,
                           questions: quiz.questions,
                           userAnswers: userAnswers,
+                          documentId: widget.documentId,
+                          filePath: widget.filePath,
                         );
                       },
                     ),
