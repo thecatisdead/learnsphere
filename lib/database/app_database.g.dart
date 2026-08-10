@@ -1769,6 +1769,232 @@ class QuizzesCompanion extends UpdateCompanion<Quizze> {
   }
 }
 
+class $FlashcardsTable extends Flashcards
+    with TableInfo<$FlashcardsTable, Flashcard> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FlashcardsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _documentIdMeta = const VerificationMeta(
+    'documentId',
+  );
+  @override
+  late final GeneratedColumn<String> documentId = GeneratedColumn<String>(
+    'document_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _flashcardJsonMeta = const VerificationMeta(
+    'flashcardJson',
+  );
+  @override
+  late final GeneratedColumn<String> flashcardJson = GeneratedColumn<String>(
+    'flashcard_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [documentId, flashcardJson];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'flashcards';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Flashcard> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('document_id')) {
+      context.handle(
+        _documentIdMeta,
+        documentId.isAcceptableOrUnknown(data['document_id']!, _documentIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_documentIdMeta);
+    }
+    if (data.containsKey('flashcard_json')) {
+      context.handle(
+        _flashcardJsonMeta,
+        flashcardJson.isAcceptableOrUnknown(
+          data['flashcard_json']!,
+          _flashcardJsonMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_flashcardJsonMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {documentId};
+  @override
+  Flashcard map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Flashcard(
+      documentId:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}document_id'],
+          )!,
+      flashcardJson:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}flashcard_json'],
+          )!,
+    );
+  }
+
+  @override
+  $FlashcardsTable createAlias(String alias) {
+    return $FlashcardsTable(attachedDatabase, alias);
+  }
+}
+
+class Flashcard extends DataClass implements Insertable<Flashcard> {
+  final String documentId;
+  final String flashcardJson;
+  const Flashcard({required this.documentId, required this.flashcardJson});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['document_id'] = Variable<String>(documentId);
+    map['flashcard_json'] = Variable<String>(flashcardJson);
+    return map;
+  }
+
+  FlashcardsCompanion toCompanion(bool nullToAbsent) {
+    return FlashcardsCompanion(
+      documentId: Value(documentId),
+      flashcardJson: Value(flashcardJson),
+    );
+  }
+
+  factory Flashcard.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Flashcard(
+      documentId: serializer.fromJson<String>(json['documentId']),
+      flashcardJson: serializer.fromJson<String>(json['flashcardJson']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'documentId': serializer.toJson<String>(documentId),
+      'flashcardJson': serializer.toJson<String>(flashcardJson),
+    };
+  }
+
+  Flashcard copyWith({String? documentId, String? flashcardJson}) => Flashcard(
+    documentId: documentId ?? this.documentId,
+    flashcardJson: flashcardJson ?? this.flashcardJson,
+  );
+  Flashcard copyWithCompanion(FlashcardsCompanion data) {
+    return Flashcard(
+      documentId:
+          data.documentId.present ? data.documentId.value : this.documentId,
+      flashcardJson:
+          data.flashcardJson.present
+              ? data.flashcardJson.value
+              : this.flashcardJson,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Flashcard(')
+          ..write('documentId: $documentId, ')
+          ..write('flashcardJson: $flashcardJson')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(documentId, flashcardJson);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Flashcard &&
+          other.documentId == this.documentId &&
+          other.flashcardJson == this.flashcardJson);
+}
+
+class FlashcardsCompanion extends UpdateCompanion<Flashcard> {
+  final Value<String> documentId;
+  final Value<String> flashcardJson;
+  final Value<int> rowid;
+  const FlashcardsCompanion({
+    this.documentId = const Value.absent(),
+    this.flashcardJson = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FlashcardsCompanion.insert({
+    required String documentId,
+    required String flashcardJson,
+    this.rowid = const Value.absent(),
+  }) : documentId = Value(documentId),
+       flashcardJson = Value(flashcardJson);
+  static Insertable<Flashcard> custom({
+    Expression<String>? documentId,
+    Expression<String>? flashcardJson,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (documentId != null) 'document_id': documentId,
+      if (flashcardJson != null) 'flashcard_json': flashcardJson,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FlashcardsCompanion copyWith({
+    Value<String>? documentId,
+    Value<String>? flashcardJson,
+    Value<int>? rowid,
+  }) {
+    return FlashcardsCompanion(
+      documentId: documentId ?? this.documentId,
+      flashcardJson: flashcardJson ?? this.flashcardJson,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (documentId.present) {
+      map['document_id'] = Variable<String>(documentId.value);
+    }
+    if (flashcardJson.present) {
+      map['flashcard_json'] = Variable<String>(flashcardJson.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FlashcardsCompanion(')
+          ..write('documentId: $documentId, ')
+          ..write('flashcardJson: $flashcardJson, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1777,6 +2003,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ChatMessagesTable chatMessages = $ChatMessagesTable(this);
   late final $SummariesTable summaries = $SummariesTable(this);
   late final $QuizzesTable quizzes = $QuizzesTable(this);
+  late final $FlashcardsTable flashcards = $FlashcardsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1787,6 +2014,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     chatMessages,
     summaries,
     quizzes,
+    flashcards,
   ];
 }
 
@@ -2086,8 +2314,6 @@ typedef $$ChatSessionsTableCreateCompanionBuilder =
     });
 typedef $$ChatSessionsTableUpdateCompanionBuilder =
     ChatSessionsCompanion Function({
-      Value<String> id,
-      Value<String> documentId,
       Value<String> title,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -2783,6 +3009,157 @@ typedef $$QuizzesTableProcessedTableManager =
       Quizze,
       PrefetchHooks Function()
     >;
+typedef $$FlashcardsTableCreateCompanionBuilder =
+    FlashcardsCompanion Function({
+      required String documentId,
+      required String flashcardJson,
+      Value<int> rowid,
+    });
+typedef $$FlashcardsTableUpdateCompanionBuilder =
+    FlashcardsCompanion Function({
+      Value<String> documentId,
+      Value<String> flashcardJson,
+      Value<int> rowid,
+    });
+
+class $$FlashcardsTableFilterComposer
+    extends Composer<_$AppDatabase, $FlashcardsTable> {
+  $$FlashcardsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get documentId => $composableBuilder(
+    column: $table.documentId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get flashcardJson => $composableBuilder(
+    column: $table.flashcardJson,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$FlashcardsTableOrderingComposer
+    extends Composer<_$AppDatabase, $FlashcardsTable> {
+  $$FlashcardsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get documentId => $composableBuilder(
+    column: $table.documentId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get flashcardJson => $composableBuilder(
+    column: $table.flashcardJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$FlashcardsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FlashcardsTable> {
+  $$FlashcardsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get documentId => $composableBuilder(
+    column: $table.documentId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get flashcardJson => $composableBuilder(
+    column: $table.flashcardJson,
+    builder: (column) => column,
+  );
+}
+
+class $$FlashcardsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FlashcardsTable,
+          Flashcard,
+          $$FlashcardsTableFilterComposer,
+          $$FlashcardsTableOrderingComposer,
+          $$FlashcardsTableAnnotationComposer,
+          $$FlashcardsTableCreateCompanionBuilder,
+          $$FlashcardsTableUpdateCompanionBuilder,
+          (
+            Flashcard,
+            BaseReferences<_$AppDatabase, $FlashcardsTable, Flashcard>,
+          ),
+          Flashcard,
+          PrefetchHooks Function()
+        > {
+  $$FlashcardsTableTableManager(_$AppDatabase db, $FlashcardsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer:
+              () => $$FlashcardsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer:
+              () => $$FlashcardsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer:
+              () => $$FlashcardsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> documentId = const Value.absent(),
+                Value<String> flashcardJson = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FlashcardsCompanion(
+                documentId: documentId,
+                flashcardJson: flashcardJson,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String documentId,
+                required String flashcardJson,
+                Value<int> rowid = const Value.absent(),
+              }) => FlashcardsCompanion.insert(
+                documentId: documentId,
+                flashcardJson: flashcardJson,
+                rowid: rowid,
+              ),
+          withReferenceMapper:
+              (p0) =>
+                  p0
+                      .map(
+                        (e) => (
+                          e.readTable(table),
+                          BaseReferences(db, table, e),
+                        ),
+                      )
+                      .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$FlashcardsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FlashcardsTable,
+      Flashcard,
+      $$FlashcardsTableFilterComposer,
+      $$FlashcardsTableOrderingComposer,
+      $$FlashcardsTableAnnotationComposer,
+      $$FlashcardsTableCreateCompanionBuilder,
+      $$FlashcardsTableUpdateCompanionBuilder,
+      (Flashcard, BaseReferences<_$AppDatabase, $FlashcardsTable, Flashcard>),
+      Flashcard,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2797,4 +3174,6 @@ class $AppDatabaseManager {
       $$SummariesTableTableManager(_db, _db.summaries);
   $$QuizzesTableTableManager get quizzes =>
       $$QuizzesTableTableManager(_db, _db.quizzes);
+  $$FlashcardsTableTableManager get flashcards =>
+      $$FlashcardsTableTableManager(_db, _db.flashcards);
 }

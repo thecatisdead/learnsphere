@@ -10,18 +10,24 @@ import 'tables/chat_messages_table.dart';
 import 'tables/documents_table.dart';
 import 'tables/summaries_table.dart';
 import 'tables/quizzes_table.dart';
+import 'tables/flashcards_table.dart';
 part 'app_database.g.dart';
 
-
-
 @DriftDatabase(
-  tables: [Documents, ChatSessions, ChatMessages, Summaries, Quizzes],
+  tables: [
+    Documents,
+    ChatSessions,
+    ChatMessages,
+    Summaries,
+    Quizzes,
+    Flashcards,
+  ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration {
@@ -41,6 +47,10 @@ class AppDatabase extends _$AppDatabase {
 
         if (from < 4) {
           await m.createTable(quizzes);
+        }
+
+        if (from < 5) {
+          await m.createTable(flashcards);
         }
       },
     );

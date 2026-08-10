@@ -238,22 +238,42 @@ class AiLoadingNotifier extends Notifier<AiGenerationState> {
 
       final flashcards = await AiService.generateFlashcards(fileName, text);
 
+      print("✅ Flashcards generated");
+      print("📚 Card count: ${flashcards.flashcards.length}");
+
+      final documentRepository = DocumentRepository(ref.read(databaseProvider));
+
+      // Save flashcards permanently in SQLite.
+      print("💾 ABOUT TO SAVE FLASHCARDS");
+
+      await documentRepository.saveFlashcards(
+        documentId: documentId,
+        deck: flashcards,
+      );
+
+      print("saveFlashcards finished");
+
+      // Keep the generated deck in Riverpod for immediate use.
       ref
           .read(flashcardProvider.notifier)
           .setFlashcardDeck(filePath, flashcards);
 
+      print("⚡ Flashcards stored in Riverpod");
+
+      // Tell the UI that flashcards are ready.
       ref.read(aiMaterialProvider.notifier).setFlashcardsReady(filePath);
 
-      final documentRepository = DocumentRepository(ref.read(databaseProvider));
-
+      // Mark the document as having generated flashcards.
       await documentRepository.markFlashcardsGenerated(documentId);
 
       ref.invalidate(documentProvider(documentId));
 
       finish(AiTask.flashcards);
+
+      print("FLASHCARD GENERATION FINISHED");
     } catch (e) {
       error(AiTask.flashcards);
-      print(e.toString());
+      print("FLASHCARD ERROR: $e");
     }
   }
 }

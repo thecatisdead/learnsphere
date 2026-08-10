@@ -4,7 +4,6 @@ import 'package:flip_card/flip_card.dart';
 import '/app/main_navigation.dart';
 
 import '../../providers/flashcard_provider.dart';
-
 import '../../providers/study_session_provider.dart';
 
 class FlashcardScreen extends ConsumerStatefulWidget {
@@ -18,6 +17,52 @@ class _FlashcardScreenState extends ConsumerState<FlashcardScreen> {
   int currentIndex = 0;
 
   @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadFlashcards();
+    });
+  }
+
+  Future<void> _loadFlashcards() async {
+    print("FLASHCARD SCREEN LOAD");
+
+    final session = ref.read(studySessionProvider);
+
+    if (session == null) {
+      print("No study session");
+      return;
+    }
+
+    print("Document ID: ${session.documentId}");
+    print("File path: ${session.filePath}");
+
+    final flashcardMap = ref.read(flashcardProvider);
+
+    print("Riverpod flashcards: $flashcardMap");
+
+    final cachedDeck = flashcardMap[session.filePath];
+
+    if (cachedDeck != null) {
+      print("Flashcards found in Riverpod");
+      print("Card count: ${cachedDeck.flashcards.length}");
+      return;
+    }
+
+    print("Flashcards not found in Riverpod");
+
+    await ref
+        .read(flashcardProvider.notifier)
+        .loadFlashcards(
+          documentId: session.documentId,
+          filePath: session.filePath,
+        );
+
+    print("STEP: Flashcard SQLite load finished");
+  }
+
+  @override
   Widget build(BuildContext context) {
     final flashcardMap = ref.watch(flashcardProvider);
     final session = ref.watch(studySessionProvider);
@@ -27,12 +72,14 @@ class _FlashcardScreenState extends ConsumerState<FlashcardScreen> {
     if (deck == null) {
       return const Scaffold(body: Center(child: Text("No flashcards found.")));
     }
+
     final isLastCard = currentIndex == deck.flashcards.length - 1;
 
     final flashcard = deck.flashcards[currentIndex];
 
     return Scaffold(
       appBar: AppBar(title: Text(deck.fileName), centerTitle: true),
+
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -98,9 +145,9 @@ class _FlashcardScreenState extends ConsumerState<FlashcardScreen> {
                     },
 
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color.fromRGBO(100, 116, 139, 1.0),
+                      backgroundColor: const Color.fromRGBO(100, 116, 139, 1.0),
                       foregroundColor: Colors.white,
-                      elevation: 5, // Shadow
+                      elevation: 5,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 30,
                         vertical: 15,
@@ -109,6 +156,7 @@ class _FlashcardScreenState extends ConsumerState<FlashcardScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
+
                     label: const Text("Back"),
                     icon: const Icon(Icons.arrow_back),
                   ),
@@ -117,54 +165,50 @@ class _FlashcardScreenState extends ConsumerState<FlashcardScreen> {
                 const SizedBox(width: 20),
 
                 Expanded(
-                  child: Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (isLastCard) {
-                          Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) {
-                                return const MainNavigation();
-                              },
-                            ),
-                            (route) => false,
-                          );
-                        } else {
-                          setState(() {
-                            currentIndex++;
-                          });
-                        }
-                      },
-
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Color.fromRGBO(
-                          13,
-                          148,
-                          136,
-                          1.0,
-                        ), // Background
-                        foregroundColor: Colors.white,
-                        elevation: 5, // Shadow
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 30,
-                          vertical: 15,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            isLastCard ? "Go Home" : "Next",
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (isLastCard) {
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) {
+                              return const MainNavigation();
+                            },
                           ),
-                          const SizedBox(width: 8),
-                          Icon(isLastCard ? Icons.home : Icons.arrow_forward),
-                        ],
+                          (route) => false,
+                        );
+                      } else {
+                        setState(() {
+                          currentIndex++;
+                        });
+                      }
+                    },
+
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromRGBO(13, 148, 136, 1.0),
+                      foregroundColor: Colors.white,
+                      elevation: 5,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 30,
+                        vertical: 15,
                       ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          isLastCard ? "Go Home" : "Next",
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+
+                        const SizedBox(width: 8),
+
+                        Icon(isLastCard ? Icons.home : Icons.arrow_forward),
+                      ],
                     ),
                   ),
                 ),

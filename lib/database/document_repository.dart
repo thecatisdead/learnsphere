@@ -1,15 +1,21 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:learnsphere/database/app_database.dart';
 
-import 'dart:convert';
-
 import '../models/quiz.dart';
 import '../models/question.dart';
+import '../models/flashcard.dart' as model;
+import '../models/flashcarddeck.dart';
 
 class DocumentRepository {
   final AppDatabase db;
 
   DocumentRepository(this.db);
+
+  // ============================================================
+  // SUMMARY
+  // ============================================================
 
   Future<void> saveSummary({
     required String documentId,
@@ -43,6 +49,10 @@ class DocumentRepository {
       ..where((tbl) => tbl.documentId.equals(documentId))).getSingleOrNull();
   }
 
+  // ============================================================
+  // DOCUMENT FLAGS
+  // ============================================================
+
   Future<void> markSummaryGenerated(String documentId) async {
     await (db.update(db.documents)
       ..where((doc) => doc.id.equals(documentId))).write(
@@ -72,6 +82,10 @@ class DocumentRepository {
       ),
     );
   }
+
+  // ============================================================
+  // DOCUMENTS
+  // ============================================================
 
   Future<void> deleteDocument(String documentId) async {
     await (db.delete(db.documents)
@@ -167,63 +181,122 @@ class DocumentRepository {
     final document = await getDocumentById(id);
 
     return document!;
-
-
-
-    
   }
+
+  // ============================================================
+  // QUIZ
+  // ============================================================
 
   Future<void> saveQuiz({
-  required String documentId,
-  required Quiz quiz,
-}) async {
-  print("💾 SAVING QUIZ");
+    required String documentId,
+    required Quiz quiz,
+  }) async {
+    print("💾 SAVING QUIZ");
 
-  final quizJson = jsonEncode({
-    'fileName': quiz.fileName,
-    'questions': quiz.questions.map((question) {
-      return {
-        'question': question.question,
-        'options': question.options,
-        'correctAnswer': question.correctAnswer,
-      };
-    }).toList(),
-  });
+    final quizJson = jsonEncode({
+      'fileName': quiz.fileName,
+      'questions':
+          quiz.questions.map((question) {
+            return {
+              'question': question.question,
+              'options': question.options,
+              'correctAnswer': question.correctAnswer,
+            };
+          }).toList(),
+    });
 
-  await db
-      .into(db.quizzes)
-      .insertOnConflictUpdate(
-        QuizzesCompanion.insert(
-          documentId: documentId,
-          quizJson: quizJson,
-        ),
-      );
+    await db
+        .into(db.quizzes)
+        .insertOnConflictUpdate(
+          QuizzesCompanion.insert(documentId: documentId, quizJson: quizJson),
+        );
 
-  print("✅ QUIZ INSERT FINISHED");
-}
-
-Future<Quiz?> getQuiz(String documentId) async {
-  final row = await (db.select(db.quizzes)
-        ..where((tbl) => tbl.documentId.equals(documentId)))
-      .getSingleOrNull();
-
-  if (row == null) {
-    return null;
+    print("✅ QUIZ INSERT FINISHED");
   }
 
-  final Map<String, dynamic> json = jsonDecode(row.quizJson);
+  Future<Quiz?> getQuiz(String documentId) async {
+    final row =
+        await (db.select(
+          db.quizzes,
+        )..where((tbl) => tbl.documentId.equals(documentId))).getSingleOrNull();
 
-  final questions = (json['questions'] as List)
-      .map(
-        (question) => Question.fromJson(
-          Map<String, dynamic>.from(question),
-        ),
-      )
-      .toList();
+    if (row == null) {
+      return null;
+    }
 
-  return Quiz(
-    fileName: json['fileName'] as String,
-    questions: questions,
-  );
-}
+    final Map<String, dynamic> json = jsonDecode(row.quizJson);
+
+    final questions =
+        (json['questions'] as List)
+            .map(
+              (question) =>
+                  Question.fromJson(Map<String, dynamic>.from(question)),
+            )
+            .toList();
+
+    return Quiz(fileName: json['fileName'] as String, questions: questions);
+  }
+
+  // ============================================================
+  // FLASHCARDS
+  // ============================================================
+
+  Future<void> saveFlashcards({
+    required String documentId,
+    required FlashcardDeck deck,
+  }) async {
+    print("💾 SAVING FLASHCARDS");
+
+    final flashcardJson = jsonEncode({
+      'fileName': deck.fileName,
+      'flashcards':
+          deck.flashcards.map((flashcard) {
+            return {'front': flashcard.front, 'back': flashcard.back};
+          }).toList(),
+    });
+
+    await db
+        .into(db.flashcards)
+        .insertOnConflictUpdate(
+          FlashcardsCompanion.insert(
+            documentId: documentId,
+            flashcardJson: flashcardJson,
+          ),
+        );
+
+    print("✅ FLASHCARDS INSERT FINISHED");
+  }
+
+  Future<FlashcardDeck?> getFlashcards(String documentId) async {
+    print("📖 LOADING FLASHCARDS");
+
+    final row =
+        await (db.select(
+          db.flashcards,
+        )..where((tbl) => tbl.documentId.equals(documentId))).getSingleOrNull();
+
+    if (row == null) {
+      print("❌ No flashcards found in SQLite");
+      return null;
+    }
+
+    final Map<String, dynamic> json = jsonDecode(row.flashcardJson);
+
+    final flashcards =
+        (json['flashcards'] as List)
+            .map(
+              (flashcard) => model.Flashcard.fromJson(
+                Map<String, dynamic>.from(flashcard),
+              ),
+            )
+            .toList();
+
+    print("✅ Flashcards loaded from SQLite");
+    print("📚 Card count: ${flashcards.length}");
+
+    return FlashcardDeck(
+      fileName: json['fileName'] as String,
+      flashcards: flashcards,
+    );
+  }
 }
