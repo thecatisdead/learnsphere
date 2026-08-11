@@ -1332,6 +1332,15 @@ class $SummariesTable extends Summaries
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $SummariesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _documentIdMeta = const VerificationMeta(
     'documentId',
   );
@@ -1354,8 +1363,24 @@ class $SummariesTable extends Summaries
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
   @override
-  List<GeneratedColumn> get $columns => [documentId, summaryText];
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    documentId,
+    summaryText,
+    createdAt,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1368,6 +1393,11 @@ class $SummariesTable extends Summaries
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
     if (data.containsKey('document_id')) {
       context.handle(
         _documentIdMeta,
@@ -1387,15 +1417,28 @@ class $SummariesTable extends Summaries
     } else if (isInserting) {
       context.missing(_summaryTextMeta);
     }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
     return context;
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {documentId};
+  Set<GeneratedColumn> get $primaryKey => {id};
   @override
   Summary map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return Summary(
+      id:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}id'],
+          )!,
       documentId:
           attachedDatabase.typeMapping.read(
             DriftSqlType.string,
@@ -1405,6 +1448,11 @@ class $SummariesTable extends Summaries
           attachedDatabase.typeMapping.read(
             DriftSqlType.string,
             data['${effectivePrefix}summary_text'],
+          )!,
+      createdAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}created_at'],
           )!,
     );
   }
@@ -1416,21 +1464,32 @@ class $SummariesTable extends Summaries
 }
 
 class Summary extends DataClass implements Insertable<Summary> {
+  final String id;
   final String documentId;
   final String summaryText;
-  const Summary({required this.documentId, required this.summaryText});
+  final DateTime createdAt;
+  const Summary({
+    required this.id,
+    required this.documentId,
+    required this.summaryText,
+    required this.createdAt,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
     map['document_id'] = Variable<String>(documentId);
     map['summary_text'] = Variable<String>(summaryText);
+    map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
 
   SummariesCompanion toCompanion(bool nullToAbsent) {
     return SummariesCompanion(
+      id: Value(id),
       documentId: Value(documentId),
       summaryText: Value(summaryText),
+      createdAt: Value(createdAt),
     );
   }
 
@@ -1440,86 +1499,119 @@ class Summary extends DataClass implements Insertable<Summary> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Summary(
+      id: serializer.fromJson<String>(json['id']),
       documentId: serializer.fromJson<String>(json['documentId']),
       summaryText: serializer.fromJson<String>(json['summaryText']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
       'documentId': serializer.toJson<String>(documentId),
       'summaryText': serializer.toJson<String>(summaryText),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
 
-  Summary copyWith({String? documentId, String? summaryText}) => Summary(
+  Summary copyWith({
+    String? id,
+    String? documentId,
+    String? summaryText,
+    DateTime? createdAt,
+  }) => Summary(
+    id: id ?? this.id,
     documentId: documentId ?? this.documentId,
     summaryText: summaryText ?? this.summaryText,
+    createdAt: createdAt ?? this.createdAt,
   );
   Summary copyWithCompanion(SummariesCompanion data) {
     return Summary(
+      id: data.id.present ? data.id.value : this.id,
       documentId:
           data.documentId.present ? data.documentId.value : this.documentId,
       summaryText:
           data.summaryText.present ? data.summaryText.value : this.summaryText,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
 
   @override
   String toString() {
     return (StringBuffer('Summary(')
+          ..write('id: $id, ')
           ..write('documentId: $documentId, ')
-          ..write('summaryText: $summaryText')
+          ..write('summaryText: $summaryText, ')
+          ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(documentId, summaryText);
+  int get hashCode => Object.hash(id, documentId, summaryText, createdAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Summary &&
+          other.id == this.id &&
           other.documentId == this.documentId &&
-          other.summaryText == this.summaryText);
+          other.summaryText == this.summaryText &&
+          other.createdAt == this.createdAt);
 }
 
 class SummariesCompanion extends UpdateCompanion<Summary> {
+  final Value<String> id;
   final Value<String> documentId;
   final Value<String> summaryText;
+  final Value<DateTime> createdAt;
   final Value<int> rowid;
   const SummariesCompanion({
+    this.id = const Value.absent(),
     this.documentId = const Value.absent(),
     this.summaryText = const Value.absent(),
+    this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   SummariesCompanion.insert({
+    required String id,
     required String documentId,
     required String summaryText,
+    required DateTime createdAt,
     this.rowid = const Value.absent(),
-  }) : documentId = Value(documentId),
-       summaryText = Value(summaryText);
+  }) : id = Value(id),
+       documentId = Value(documentId),
+       summaryText = Value(summaryText),
+       createdAt = Value(createdAt);
   static Insertable<Summary> custom({
+    Expression<String>? id,
     Expression<String>? documentId,
     Expression<String>? summaryText,
+    Expression<DateTime>? createdAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (id != null) 'id': id,
       if (documentId != null) 'document_id': documentId,
       if (summaryText != null) 'summary_text': summaryText,
+      if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
   SummariesCompanion copyWith({
+    Value<String>? id,
     Value<String>? documentId,
     Value<String>? summaryText,
+    Value<DateTime>? createdAt,
     Value<int>? rowid,
   }) {
     return SummariesCompanion(
+      id: id ?? this.id,
       documentId: documentId ?? this.documentId,
       summaryText: summaryText ?? this.summaryText,
+      createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1527,11 +1619,17 @@ class SummariesCompanion extends UpdateCompanion<Summary> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
     if (documentId.present) {
       map['document_id'] = Variable<String>(documentId.value);
     }
     if (summaryText.present) {
       map['summary_text'] = Variable<String>(summaryText.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -1542,8 +1640,10 @@ class SummariesCompanion extends UpdateCompanion<Summary> {
   @override
   String toString() {
     return (StringBuffer('SummariesCompanion(')
+          ..write('id: $id, ')
           ..write('documentId: $documentId, ')
           ..write('summaryText: $summaryText, ')
+          ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2314,6 +2414,8 @@ typedef $$ChatSessionsTableCreateCompanionBuilder =
     });
 typedef $$ChatSessionsTableUpdateCompanionBuilder =
     ChatSessionsCompanion Function({
+      Value<String> id,
+      Value<String> documentId,
       Value<String> title,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -2717,14 +2819,18 @@ typedef $$ChatMessagesTableProcessedTableManager =
     >;
 typedef $$SummariesTableCreateCompanionBuilder =
     SummariesCompanion Function({
+      required String id,
       required String documentId,
       required String summaryText,
+      required DateTime createdAt,
       Value<int> rowid,
     });
 typedef $$SummariesTableUpdateCompanionBuilder =
     SummariesCompanion Function({
+      Value<String> id,
       Value<String> documentId,
       Value<String> summaryText,
+      Value<DateTime> createdAt,
       Value<int> rowid,
     });
 
@@ -2737,6 +2843,11 @@ class $$SummariesTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get documentId => $composableBuilder(
     column: $table.documentId,
     builder: (column) => ColumnFilters(column),
@@ -2744,6 +2855,11 @@ class $$SummariesTableFilterComposer
 
   ColumnFilters<String> get summaryText => $composableBuilder(
     column: $table.summaryText,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -2757,6 +2873,11 @@ class $$SummariesTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get documentId => $composableBuilder(
     column: $table.documentId,
     builder: (column) => ColumnOrderings(column),
@@ -2764,6 +2885,11 @@ class $$SummariesTableOrderingComposer
 
   ColumnOrderings<String> get summaryText => $composableBuilder(
     column: $table.summaryText,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
 }
@@ -2777,6 +2903,9 @@ class $$SummariesTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
   GeneratedColumn<String> get documentId => $composableBuilder(
     column: $table.documentId,
     builder: (column) => column,
@@ -2786,6 +2915,9 @@ class $$SummariesTableAnnotationComposer
     column: $table.summaryText,
     builder: (column) => column,
   );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
 }
 
 class $$SummariesTableTableManager
@@ -2816,22 +2948,30 @@ class $$SummariesTableTableManager
               () => $$SummariesTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
+                Value<String> id = const Value.absent(),
                 Value<String> documentId = const Value.absent(),
                 Value<String> summaryText = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => SummariesCompanion(
+                id: id,
                 documentId: documentId,
                 summaryText: summaryText,
+                createdAt: createdAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
+                required String id,
                 required String documentId,
                 required String summaryText,
+                required DateTime createdAt,
                 Value<int> rowid = const Value.absent(),
               }) => SummariesCompanion.insert(
+                id: id,
                 documentId: documentId,
                 summaryText: summaryText,
+                createdAt: createdAt,
                 rowid: rowid,
               ),
           withReferenceMapper:

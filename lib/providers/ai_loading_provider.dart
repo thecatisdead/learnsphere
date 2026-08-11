@@ -155,12 +155,7 @@ class AiLoadingNotifier extends Notifier<AiGenerationState> {
 
       final documentRepository = DocumentRepository(ref.read(databaseProvider));
 
-      ref.read(summaryProvider.notifier).setSummary(filePath, summary);
-
-      ref.read(aiMaterialProvider.notifier).setSummaryReady(filePath);
-
-      await documentRepository.markSummaryGenerated(documentId);
-
+      // Save the new summary as a NEW row.
       await documentRepository.saveSummary(
         documentId: documentId,
         summary: summaryText,
@@ -168,17 +163,19 @@ class AiLoadingNotifier extends Notifier<AiGenerationState> {
 
       print("✅ saveSummary finished");
 
-      final saved = await documentRepository.getSummary(documentId);
+      // Only mark the document as generated after saving succeeds.
+      await documentRepository.markSummaryGenerated(documentId);
 
-      print("OBJECT: $saved");
+      final savedSummaries = await documentRepository.getSummaries(documentId);
 
-      if (saved != null) {
-        print("ID: ${saved.documentId}");
-        print("TEXT: ${saved.summaryText}");
+      print("📚 SUMMARY COUNT: ${savedSummaries.length}");
+
+      for (final saved in savedSummaries) {
+        print("📝 Summary ID: ${saved.id}");
+        print("📄 Document ID: ${saved.documentId}");
+        print("📄 Length: ${saved.summaryText.length}");
+        print("🕒 Created: ${saved.createdAt}");
       }
-
-      print("📖 LOADED FROM SQLITE:");
-      print(saved?.summaryText);
 
       ref.invalidate(documentProvider(documentId));
 

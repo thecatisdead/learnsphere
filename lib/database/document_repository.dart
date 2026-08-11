@@ -8,6 +8,8 @@ import '../models/question.dart';
 import '../models/flashcard.dart' as model;
 import '../models/flashcarddeck.dart';
 
+import 'package:uuid/uuid.dart';
+
 class DocumentRepository {
   final AppDatabase db;
 
@@ -17,36 +19,47 @@ class DocumentRepository {
   // SUMMARY
   // ============================================================
 
-  Future<void> saveSummary({
-    required String documentId,
-    required String summary,
-  }) async {
-    print("💾 SAVING SUMMARY");
+Future<void> saveSummary({
+  required String documentId,
+  required String summary,
+}) async {
+  print("💾 SAVING SUMMARY");
 
-    await db
-        .into(db.summaries)
-        .insertOnConflictUpdate(
-          SummariesCompanion.insert(
-            documentId: documentId,
-            summaryText: summary,
-          ),
-        );
+  final summaryId = const Uuid().v4();
 
-    print("✅ INSERT FINISHED");
+  await db.into(db.summaries).insert(
+    SummariesCompanion.insert(
+      id: summaryId,
+      documentId: documentId,
+      summaryText: summary,
+      createdAt: DateTime.now(),
+    ),
+  );
 
-    final rows = await db.select(db.summaries).get();
+  print("✅ SUMMARY INSERT FINISHED");
+  print("🆔 Summary ID: $summaryId");
 
-    print("📚 ROW COUNT: ${rows.length}");
+  final rows = await (db.select(db.summaries)
+        ..where((tbl) => tbl.documentId.equals(documentId))
+        ..orderBy([
+          (tbl) => OrderingTerm.desc(tbl.createdAt),
+        ]))
+      .get();
 
-    for (final row in rows) {
-      print("ID: ${row.documentId}");
-      print("TEXT LENGTH: ${row.summaryText.length}");
-    }
+  print("📚 SUMMARY COUNT: ${rows.length}");
+
+  for (final row in rows) {
+    print("ID: ${row.id}");
+    print("TEXT LENGTH: ${row.summaryText.length}");
+    print("CREATED: ${row.createdAt}");
   }
+}
 
-  Future<Summary?> getSummary(String documentId) {
+  Future<List<Summary>> getSummaries(String documentId) {
     return (db.select(db.summaries)
-      ..where((tbl) => tbl.documentId.equals(documentId))).getSingleOrNull();
+          ..where((tbl) => tbl.documentId.equals(documentId))
+          ..orderBy([(tbl) => OrderingTerm.desc(tbl.createdAt)]))
+        .get();
   }
 
   // ============================================================

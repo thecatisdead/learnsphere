@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:learnsphere/screens/chat/study_chat_screen.dart';
 
 import '../../providers/ai_loading_provider.dart';
-import '../../providers/ai_material_provider.dart';
 import '../../providers/chat_session_provider.dart';
 import '../../database/database_provider.dart';
 
@@ -14,14 +13,51 @@ import '/../screens/quiz/quiz_screen.dart';
 import '/../screens/flashcard/flashcard_screen.dart';
 import '../../database/chat_repository.dart';
 
-import '../../database/document_repository.dart';
 import '../../providers/document_provider.dart';
 
-class StudyMaterialScreen extends ConsumerWidget {
+import '../../providers/summary_provider.dart';
+
+class StudyMaterialScreen extends ConsumerStatefulWidget {
   const StudyMaterialScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<StudyMaterialScreen> createState() =>
+      _StudyMaterialScreenState();
+}
+
+class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadSummariesFromSqlite();
+    });
+  }
+
+  Future<void> _loadSummariesFromSqlite() async {
+    final session = ref.read(studySessionProvider);
+
+    if (session == null) {
+      return;
+    }
+
+    print(" Loading summaries from SQLite...");
+    print(" Document ID: ${session.documentId}");
+
+    await ref
+        .read(summaryProvider.notifier)
+        .loadSummary(
+          documentId: session.documentId,
+          filePath: session.filePath,
+          fileName: session.fileName,
+        );
+
+    print("Summaries loaded from SQLite into Riverpod");
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final session = ref.watch(studySessionProvider);
 
     if (session == null) {
@@ -29,6 +65,10 @@ class StudyMaterialScreen extends ConsumerWidget {
     }
 
     final aiState = ref.watch(aiLoadingProvider);
+
+    final summaryState = ref.watch(summaryProvider);
+
+    final summaries = summaryState.summaries[session.filePath] ?? [];
 
     final documentAsync = ref.watch(documentProvider(session.documentId));
 
@@ -90,113 +130,135 @@ class StudyMaterialScreen extends ConsumerWidget {
 
             const SizedBox(height: 16),
 
-            ElevatedButton(
-              onPressed:
-                  isBusy
-                      ? null
-                      : () {
-                        if (session == null) return;
+            // SUMMARY
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                ElevatedButton(
+                  onPressed:
+                      isBusy
+                          ? null
+                          : () {
+                            if (session == null) return;
 
-                        if (isSummaryReady) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (_) => SummaryScreen(
-                                    documentId: session.documentId,
-                                    filePath: session.filePath,
-                                    fileName: session.fileName,
-                                  ),
-                            ),
-                          );
-                          return;
-                        }
-
-                        ref
-                            .read(aiLoadingProvider.notifier)
-                            .generateSummary(
-                              filePath: session.filePath,
-                              fileName: session.fileName,
-                              documentId: session.documentId,
-                            );
-                      },
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.black,
-                elevation: 2, // Shadow
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 30,
-                  vertical: 15,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-
-              child: Row(
-                children: [
-                  // Icon → Spinner while generating
-                  isGeneratingSummary
-                      ? const SizedBox(
-                        width: 28,
-                        height: 28,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 3,
-                          color: Color(0xFFCECBF6),
-                        ),
-                      )
-                      : const Icon(
-                        Icons.summarize,
-                        size: 28,
-                        color: Color(0xFFCECBF6),
-                      ),
-
-                  const SizedBox(width: 12),
-
-                  // Text area
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                            ref
+                                .read(aiLoadingProvider.notifier)
+                                .generateSummary(
+                                  filePath: session.filePath,
+                                  fileName: session.fileName,
+                                  documentId: session.documentId,
+                                );
+                          },
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.black,
+                    elevation: 2,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 30,
+                      vertical: 15,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Row(
                     children: [
                       isGeneratingSummary
-                          ? const LoadingDots(
-                            text: "Generating Summary",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: Color(0xFF2C2C2A),
+                          ? const SizedBox(
+                            width: 28,
+                            height: 28,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 3,
+                              color: Color(0xFFCECBF6),
                             ),
                           )
-                          : isSummaryReady
-                          ? const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.check),
-                              SizedBox(width: 8),
-                              Text("Summary Ready"),
-                            ],
-                          )
-                          : const Text(
-                            "Generate Summary",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: Color(0xFF2C2C2A),
-                            ),
+                          : const Icon(
+                            Icons.summarize,
+                            size: 28,
+                            color: Color(0xFFCECBF6),
                           ),
 
-                      Text(
-                        "AI-powered notes",
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF5F5E5A),
-                        ),
+                      const SizedBox(width: 12),
+
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          isGeneratingSummary
+                              ? const LoadingDots(
+                                text: "Generating Summary",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: Color(0xFF2C2C2A),
+                                ),
+                              )
+                              : const Text(
+                                "Generate Summary",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: Color(0xFF2C2C2A),
+                                ),
+                              ),
+
+                          const Text(
+                            "AI-powered notes",
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF5F5E5A),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
+                ),
+
+                if (summaries.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+
+                  Card(
+                    child: ExpansionTile(
+                      leading: const Icon(
+                        Icons.description,
+                        color: Color(0xFFCECBF6),
+                      ),
+                      title: Text(
+                        "${summaries.length} Generated ${summaries.length == 1 ? 'Summary' : 'Summaries'}",
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      children: [
+                        for (int index = 0; index < summaries.length; index++)
+                          ListTile(
+                            leading: CircleAvatar(
+                              child: Text("${summaries.length - index}"),
+                            ),
+                            title: Text("Summary ${summaries.length - index}"),
+                            subtitle: const Text("Tap to view"),
+                            onTap: () {
+                              final selectedSummary = summaries[index];
+
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (_) => SummaryScreen(
+                                        documentId: session.documentId,
+                                        filePath: session.filePath,
+                                        fileName: session.fileName,
+                                      ),
+                                ),
+                              );
+                            },
+                          ),
+                      ],
+                    ),
+                  ),
                 ],
-              ),
+
+                const SizedBox(height: 12),
+              ],
             ),
-            const SizedBox(height: 12),
 
             ElevatedButton(
               onPressed:

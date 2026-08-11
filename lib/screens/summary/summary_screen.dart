@@ -1,12 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../database/database_provider.dart';
-import '../../database/document_repository.dart';
-import '../../providers/study_session_provider.dart';
 import '../../providers/summary_provider.dart';
-
-
 
 class SummaryScreen extends ConsumerStatefulWidget {
   final String documentId;
@@ -35,20 +30,22 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
   }
 
   Future<void> _loadSummary() async {
-    print("load summary called");
+    print("LOAD SUMMARY SCREEN");
+    print("Document ID: ${widget.documentId}");
 
-    print("📄 Document ID: ${widget.documentId}");
     final summaryState = ref.read(summaryProvider);
 
-    print("📦 Riverpod summaries: ${summaryState.summaries}");
+    final cachedSummaries = summaryState.summaries[widget.filePath];
 
-    final cachedSummary = summaryState.summaries[widget.filePath];
-    if (cachedSummary != null) {
-      print("⚡ Summary found in Riverpod");
-
-  
+    // Already loaded into Riverpod.
+    if (cachedSummaries != null && cachedSummaries.isNotEmpty) {
+      print("⚡ Summaries found in Riverpod");
+      print(" Count: ${cachedSummaries.length}");
       return;
     }
+
+    // Load from SQLite.
+    print("Loading summaries from SQLite...");
 
     await ref
         .read(summaryProvider.notifier)
@@ -58,31 +55,57 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
           fileName: widget.fileName,
         );
 
-    print("✅ STEP 2: loadSummary finished");
+    print("STEP: loadSummary finished");
   }
 
   @override
   Widget build(BuildContext context) {
     final summaryState = ref.watch(summaryProvider);
-    final summary = summaryState.summaries[widget.filePath];
+
+    final summaries = summaryState.summaries[widget.filePath] ?? [];
+
     if (summaryState.isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+    if (summaries.isEmpty) {
+      return const Scaffold(
+        body: Center(child: Text("No summary generated yet.")),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text("Summary")),
-      body:
-          summary == null
-              ? const Center(child: Text("No summary generated yet."))
-              : Padding(
-                padding: const EdgeInsets.all(16),
-                child: SingleChildScrollView(
-                  child: Text(
-                    summary.text,
-                    style: const TextStyle(fontSize: 16),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: summaries.length,
+        itemBuilder: (context, index) {
+          final summary = summaries[index];
+
+          return Card(
+            margin: const EdgeInsets.only(bottom: 16),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Summary ${summaries.length - index}",
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
+
+                  const SizedBox(height: 12),
+
+                  Text(summary.text, style: const TextStyle(fontSize: 16)),
+                ],
               ),
+            ),
+          );
+        },
+      ),
     );
   }
 }
