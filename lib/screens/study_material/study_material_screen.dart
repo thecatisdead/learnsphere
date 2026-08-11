@@ -99,7 +99,7 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text("Study Material")),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -217,42 +217,44 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
                 if (summaries.isNotEmpty) ...[
                   const SizedBox(height: 8),
 
-                  Card(
-                    child: ExpansionTile(
-                      leading: const Icon(
-                        Icons.description,
-                        color: Color(0xFFCECBF6),
+                  ExpansionTile(
+                    title: Text(
+                      " Generated ${summaries.length == 1 ? 'Summary' : 'Summaries'}",
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
                       ),
-                      title: Text(
-                        "${summaries.length} Generated ${summaries.length == 1 ? 'Summary' : 'Summaries'}",
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      children: [
-                        for (int index = 0; index < summaries.length; index++)
-                          ListTile(
-                            leading: CircleAvatar(
-                              child: Text("${summaries.length - index}"),
-                            ),
-                            title: Text("Summary ${summaries.length - index}"),
-                            subtitle: const Text("Tap to view"),
-                            onTap: () {
-                              final selectedSummary = summaries[index];
-
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder:
-                                      (_) => SummaryScreen(
-                                        documentId: session.documentId,
-                                        filePath: session.filePath,
-                                        fileName: session.fileName,
-                                      ),
-                                ),
-                              );
-                            },
-                          ),
-                      ],
                     ),
+                    children: [
+                      for (int index = 0; index < summaries.length; index++)
+                        ListTile(
+                          leading: const Icon(Icons.picture_as_pdf),
+
+                          title: Text(
+                            "${session.fileName} Generated Summary No. ${summaries.length - index}",
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          subtitle: const Text("Tap to view"),
+                          onTap: () {
+                            final selectedSummary = summaries[index];
+
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (_) => SummaryScreen(
+                                      documentId: session.documentId,
+                                      filePath: session.filePath,
+                                      fileName: session.fileName,
+                                    ),
+                              ),
+                            );
+                          },
+                        ),
+                    ],
                   ),
                 ],
 
