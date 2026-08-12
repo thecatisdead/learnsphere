@@ -1,55 +1,58 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/quiz.dart';
 
+import '../models/quiz.dart';
 import '../database/document_repository.dart';
 import '../database/database_provider.dart';
 
-class QuizNotifier extends Notifier<Map<String, Quiz>> {
+class QuizNotifier extends Notifier<Map<String, List<Quiz>>> {
   @override
-  Map<String, Quiz> build() {
+  Map<String, List<Quiz>> build() {
     return {};
   }
 
-  void setQuiz(String filePath, Quiz quiz) {
-    state = {...state, filePath: quiz};
+  void addQuiz(String filePath, Quiz quiz) {
+    state = {
+      ...state,
+      filePath: [
+        ...state[filePath] ?? [],
+        quiz,
+      ],
+    };
   }
 
-  Quiz? getQuiz(String filePath) {
-    return state[filePath];
+  List<Quiz> getQuizzes(String filePath) {
+    return state[filePath] ?? [];
   }
 
-  void clearQuiz(String filePath) {
-    final newState = {...state};
-    newState.remove(filePath);
-    state = newState;
-  }
-
-  void clearAll() {
-    state = {};
-  }
-
-  Future<void> loadQuiz({
+  Future<void> loadQuizzes({
     required String documentId,
     required String filePath,
     required String fileName,
   }) async {
-    final repository = DocumentRepository(ref.read(databaseProvider));
+    final repository =
+        DocumentRepository(ref.read(databaseProvider));
 
-    final savedQuiz = await repository.getQuiz(documentId);
+    final savedQuizzes =
+        await repository.getQuizzes(documentId);
 
-    print("🧠 SQLite quiz query finished");
+    print("Loading quizzes from SQLite");
+    print("SQLite quiz count: ${savedQuizzes.length}");
 
-    if (savedQuiz == null) {
-      print("❌ No quiz found in SQLite");
+    if (savedQuizzes.isEmpty) {
+      print("No quizzes found in SQLite");
       return;
     }
 
-    print("✅ Quiz found in SQLite");
+    state = {
+      ...state,
+      filePath: savedQuizzes,
+    };
 
-    setQuiz(filePath, savedQuiz);
+    print("Quizzes loaded into Riverpod");
+    print("Riverpod quiz count: ${savedQuizzes.length}");
   }
 }
 
-final quizProvider = NotifierProvider<QuizNotifier, Map<String, Quiz>>(
+final quizProvider = NotifierProvider<QuizNotifier, Map<String, List<Quiz>>>(
   QuizNotifier.new,
 );

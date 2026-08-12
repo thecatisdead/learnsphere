@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
-import '../result/result_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../result/result_screen.dart';
 import '../../providers/quiz_provider.dart';
-import '../../providers/study_session_provider.dart';
+
+
 
 class QuizScreen extends ConsumerStatefulWidget {
   final String documentId;
   final String filePath;
   final String fileName;
+  final int quizIndex;
 
   const QuizScreen({
     super.key,
     required this.fileName,
     required this.documentId,
     required this.filePath,
+    required this.quizIndex,
   });
 
   @override
@@ -21,42 +25,6 @@ class QuizScreen extends ConsumerStatefulWidget {
 }
 
 class _QuizScreenState extends ConsumerState<QuizScreen> {
-  @override
-  void initState() {
-    super.initState();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadQuiz();
-    });
-  }
-
-  Future<void> _loadQuiz() async {
-    print("🧠 load quiz called");
-
-    print("📄 Document ID: ${widget.documentId}");
-
-    final quizMap = ref.read(quizProvider);
-
-    print("📦 Riverpod quizzes: $quizMap");
-
-    final cachedQuiz = quizMap[widget.filePath];
-
-    if (cachedQuiz != null) {
-      print("⚡ Quiz found in Riverpod");
-      return;
-    }
-
-    await ref
-        .read(quizProvider.notifier)
-        .loadQuiz(
-          documentId: widget.documentId,
-          filePath: widget.filePath,
-          fileName: widget.fileName,
-        );
-
-    print("✅ loadQuiz finished");
-  }
-
   int currentQuestion = 0;
   int score = 0;
 
@@ -67,24 +35,45 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
   @override
   Widget build(BuildContext context) {
     final quizMap = ref.watch(quizProvider);
-    final session = ref.watch(studySessionProvider);
 
-    final quiz = session == null ? null : quizMap[session.filePath];
+    final quizzes = quizMap[widget.filePath] ?? [];
 
-    if (quiz == null) {
+    if (quizzes.isEmpty) {
       return const Scaffold(body: Center(child: Text("Quiz not found.")));
     }
 
+    if (widget.quizIndex >= quizzes.length) {
+      return const Scaffold(body: Center(child: Text("Quiz not found.")));
+    }
+
+    final quiz = quizzes[widget.quizIndex];
+
     final questions = quiz.questions;
 
+    if (questions.isEmpty) {
+      return const Scaffold(
+        body: Center(child: Text("This quiz has no questions.")),
+      );
+    }
+
     return Scaffold(
-      appBar: AppBar(title: const Text("Quiz")),
+      appBar: AppBar(title: Text("Quiz ${widget.quizIndex + 1}")),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(questions[currentQuestion].question),
+            Text(
+              "Question ${currentQuestion + 1} of ${questions.length}",
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+
+            const SizedBox(height: 16),
+
+            Text(
+              questions[currentQuestion].question,
+              style: const TextStyle(fontSize: 18),
+            ),
 
             const SizedBox(height: 10),
 
@@ -134,13 +123,14 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
                           userAnswers: userAnswers,
                           documentId: widget.documentId,
                           filePath: widget.filePath,
+                          quizIndex: widget.quizIndex,
                         );
                       },
                     ),
                   );
                 }
               },
-              child: const Text('Next'),
+              child: const Text("Next"),
             ),
           ],
         ),

@@ -11,6 +11,7 @@ class ResultScreen extends StatelessWidget {
   final List<String> userAnswers;
   final String documentId;
   final String filePath;
+  final int quizIndex;
 
   const ResultScreen({
     super.key,
@@ -22,6 +23,7 @@ class ResultScreen extends StatelessWidget {
 
     required this.documentId,
     required this.filePath,
+    required this.quizIndex,
   });
 
   @override
@@ -274,6 +276,7 @@ class ResultScreen extends StatelessWidget {
                                 documentId: documentId,
                                 filePath: filePath,
                                 fileName: fileName,
+                                quizIndex: 0,
                               );
                             },
                           ),

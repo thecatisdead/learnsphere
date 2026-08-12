@@ -1655,6 +1655,15 @@ class $QuizzesTable extends Quizzes with TableInfo<$QuizzesTable, Quizze> {
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $QuizzesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _documentIdMeta = const VerificationMeta(
     'documentId',
   );
@@ -1677,8 +1686,19 @@ class $QuizzesTable extends Quizzes with TableInfo<$QuizzesTable, Quizze> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
   @override
-  List<GeneratedColumn> get $columns => [documentId, quizJson];
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, documentId, quizJson, createdAt];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1691,6 +1711,11 @@ class $QuizzesTable extends Quizzes with TableInfo<$QuizzesTable, Quizze> {
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
     if (data.containsKey('document_id')) {
       context.handle(
         _documentIdMeta,
@@ -1707,15 +1732,28 @@ class $QuizzesTable extends Quizzes with TableInfo<$QuizzesTable, Quizze> {
     } else if (isInserting) {
       context.missing(_quizJsonMeta);
     }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
     return context;
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {documentId};
+  Set<GeneratedColumn> get $primaryKey => {id};
   @override
   Quizze map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return Quizze(
+      id:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}id'],
+          )!,
       documentId:
           attachedDatabase.typeMapping.read(
             DriftSqlType.string,
@@ -1725,6 +1763,11 @@ class $QuizzesTable extends Quizzes with TableInfo<$QuizzesTable, Quizze> {
           attachedDatabase.typeMapping.read(
             DriftSqlType.string,
             data['${effectivePrefix}quiz_json'],
+          )!,
+      createdAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}created_at'],
           )!,
     );
   }
@@ -1736,21 +1779,32 @@ class $QuizzesTable extends Quizzes with TableInfo<$QuizzesTable, Quizze> {
 }
 
 class Quizze extends DataClass implements Insertable<Quizze> {
+  final String id;
   final String documentId;
   final String quizJson;
-  const Quizze({required this.documentId, required this.quizJson});
+  final DateTime createdAt;
+  const Quizze({
+    required this.id,
+    required this.documentId,
+    required this.quizJson,
+    required this.createdAt,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
     map['document_id'] = Variable<String>(documentId);
     map['quiz_json'] = Variable<String>(quizJson);
+    map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
 
   QuizzesCompanion toCompanion(bool nullToAbsent) {
     return QuizzesCompanion(
+      id: Value(id),
       documentId: Value(documentId),
       quizJson: Value(quizJson),
+      createdAt: Value(createdAt),
     );
   }
 
@@ -1760,85 +1814,118 @@ class Quizze extends DataClass implements Insertable<Quizze> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Quizze(
+      id: serializer.fromJson<String>(json['id']),
       documentId: serializer.fromJson<String>(json['documentId']),
       quizJson: serializer.fromJson<String>(json['quizJson']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
       'documentId': serializer.toJson<String>(documentId),
       'quizJson': serializer.toJson<String>(quizJson),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
 
-  Quizze copyWith({String? documentId, String? quizJson}) => Quizze(
+  Quizze copyWith({
+    String? id,
+    String? documentId,
+    String? quizJson,
+    DateTime? createdAt,
+  }) => Quizze(
+    id: id ?? this.id,
     documentId: documentId ?? this.documentId,
     quizJson: quizJson ?? this.quizJson,
+    createdAt: createdAt ?? this.createdAt,
   );
   Quizze copyWithCompanion(QuizzesCompanion data) {
     return Quizze(
+      id: data.id.present ? data.id.value : this.id,
       documentId:
           data.documentId.present ? data.documentId.value : this.documentId,
       quizJson: data.quizJson.present ? data.quizJson.value : this.quizJson,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
 
   @override
   String toString() {
     return (StringBuffer('Quizze(')
+          ..write('id: $id, ')
           ..write('documentId: $documentId, ')
-          ..write('quizJson: $quizJson')
+          ..write('quizJson: $quizJson, ')
+          ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(documentId, quizJson);
+  int get hashCode => Object.hash(id, documentId, quizJson, createdAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Quizze &&
+          other.id == this.id &&
           other.documentId == this.documentId &&
-          other.quizJson == this.quizJson);
+          other.quizJson == this.quizJson &&
+          other.createdAt == this.createdAt);
 }
 
 class QuizzesCompanion extends UpdateCompanion<Quizze> {
+  final Value<String> id;
   final Value<String> documentId;
   final Value<String> quizJson;
+  final Value<DateTime> createdAt;
   final Value<int> rowid;
   const QuizzesCompanion({
+    this.id = const Value.absent(),
     this.documentId = const Value.absent(),
     this.quizJson = const Value.absent(),
+    this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   QuizzesCompanion.insert({
+    required String id,
     required String documentId,
     required String quizJson,
+    required DateTime createdAt,
     this.rowid = const Value.absent(),
-  }) : documentId = Value(documentId),
-       quizJson = Value(quizJson);
+  }) : id = Value(id),
+       documentId = Value(documentId),
+       quizJson = Value(quizJson),
+       createdAt = Value(createdAt);
   static Insertable<Quizze> custom({
+    Expression<String>? id,
     Expression<String>? documentId,
     Expression<String>? quizJson,
+    Expression<DateTime>? createdAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (id != null) 'id': id,
       if (documentId != null) 'document_id': documentId,
       if (quizJson != null) 'quiz_json': quizJson,
+      if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
   QuizzesCompanion copyWith({
+    Value<String>? id,
     Value<String>? documentId,
     Value<String>? quizJson,
+    Value<DateTime>? createdAt,
     Value<int>? rowid,
   }) {
     return QuizzesCompanion(
+      id: id ?? this.id,
       documentId: documentId ?? this.documentId,
       quizJson: quizJson ?? this.quizJson,
+      createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1846,11 +1933,17 @@ class QuizzesCompanion extends UpdateCompanion<Quizze> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
     if (documentId.present) {
       map['document_id'] = Variable<String>(documentId.value);
     }
     if (quizJson.present) {
       map['quiz_json'] = Variable<String>(quizJson.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -1861,8 +1954,10 @@ class QuizzesCompanion extends UpdateCompanion<Quizze> {
   @override
   String toString() {
     return (StringBuffer('QuizzesCompanion(')
+          ..write('id: $id, ')
           ..write('documentId: $documentId, ')
           ..write('quizJson: $quizJson, ')
+          ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -3005,14 +3100,18 @@ typedef $$SummariesTableProcessedTableManager =
     >;
 typedef $$QuizzesTableCreateCompanionBuilder =
     QuizzesCompanion Function({
+      required String id,
       required String documentId,
       required String quizJson,
+      required DateTime createdAt,
       Value<int> rowid,
     });
 typedef $$QuizzesTableUpdateCompanionBuilder =
     QuizzesCompanion Function({
+      Value<String> id,
       Value<String> documentId,
       Value<String> quizJson,
+      Value<DateTime> createdAt,
       Value<int> rowid,
     });
 
@@ -3025,6 +3124,11 @@ class $$QuizzesTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get documentId => $composableBuilder(
     column: $table.documentId,
     builder: (column) => ColumnFilters(column),
@@ -3032,6 +3136,11 @@ class $$QuizzesTableFilterComposer
 
   ColumnFilters<String> get quizJson => $composableBuilder(
     column: $table.quizJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -3045,6 +3154,11 @@ class $$QuizzesTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get documentId => $composableBuilder(
     column: $table.documentId,
     builder: (column) => ColumnOrderings(column),
@@ -3052,6 +3166,11 @@ class $$QuizzesTableOrderingComposer
 
   ColumnOrderings<String> get quizJson => $composableBuilder(
     column: $table.quizJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
 }
@@ -3065,6 +3184,9 @@ class $$QuizzesTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
   GeneratedColumn<String> get documentId => $composableBuilder(
     column: $table.documentId,
     builder: (column) => column,
@@ -3072,6 +3194,9 @@ class $$QuizzesTableAnnotationComposer
 
   GeneratedColumn<String> get quizJson =>
       $composableBuilder(column: $table.quizJson, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
 }
 
 class $$QuizzesTableTableManager
@@ -3102,22 +3227,30 @@ class $$QuizzesTableTableManager
               () => $$QuizzesTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
+                Value<String> id = const Value.absent(),
                 Value<String> documentId = const Value.absent(),
                 Value<String> quizJson = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => QuizzesCompanion(
+                id: id,
                 documentId: documentId,
                 quizJson: quizJson,
+                createdAt: createdAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
+                required String id,
                 required String documentId,
                 required String quizJson,
+                required DateTime createdAt,
                 Value<int> rowid = const Value.absent(),
               }) => QuizzesCompanion.insert(
+                id: id,
                 documentId: documentId,
                 quizJson: quizJson,
+                createdAt: createdAt,
                 rowid: rowid,
               ),
           withReferenceMapper:

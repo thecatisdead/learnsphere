@@ -10,6 +10,8 @@ import '../models/flashcarddeck.dart';
 
 import 'package:uuid/uuid.dart';
 
+import '../models/quiz_with_document.dart';
+
 class DocumentRepository {
   final AppDatabase db;
 
@@ -19,41 +21,42 @@ class DocumentRepository {
   // SUMMARY
   // ============================================================
 
-Future<void> saveSummary({
-  required String documentId,
-  required String summary,
-}) async {
-  print("💾 SAVING SUMMARY");
+  Future<void> saveSummary({
+    required String documentId,
+    required String summary,
+  }) async {
+    print("SAVING SUMMARY");
 
-  final summaryId = const Uuid().v4();
+    final summaryId = const Uuid().v4();
 
-  await db.into(db.summaries).insert(
-    SummariesCompanion.insert(
-      id: summaryId,
-      documentId: documentId,
-      summaryText: summary,
-      createdAt: DateTime.now(),
-    ),
-  );
+    await db
+        .into(db.summaries)
+        .insert(
+          SummariesCompanion.insert(
+            id: summaryId,
+            documentId: documentId,
+            summaryText: summary,
+            createdAt: DateTime.now(),
+          ),
+        );
 
-  print("✅ SUMMARY INSERT FINISHED");
-  print("🆔 Summary ID: $summaryId");
+    print("SUMMARY INSERT FINISHED");
+    print("Summary ID: $summaryId");
 
-  final rows = await (db.select(db.summaries)
-        ..where((tbl) => tbl.documentId.equals(documentId))
-        ..orderBy([
-          (tbl) => OrderingTerm.desc(tbl.createdAt),
-        ]))
-      .get();
+    final rows =
+        await (db.select(db.summaries)
+              ..where((tbl) => tbl.documentId.equals(documentId))
+              ..orderBy([(tbl) => OrderingTerm.desc(tbl.createdAt)]))
+            .get();
 
-  print("📚 SUMMARY COUNT: ${rows.length}");
+    print(" SUMMARY COUNT: ${rows.length}");
 
-  for (final row in rows) {
-    print("ID: ${row.id}");
-    print("TEXT LENGTH: ${row.summaryText.length}");
-    print("CREATED: ${row.createdAt}");
+    for (final row in rows) {
+      print("ID: ${row.id}");
+      print("TEXT LENGTH: ${row.summaryText.length}");
+      print("CREATED: ${row.createdAt}");
+    }
   }
-}
 
   Future<List<Summary>> getSummaries(String documentId) {
     return (db.select(db.summaries)
@@ -204,8 +207,9 @@ Future<void> saveSummary({
     required String documentId,
     required Quiz quiz,
   }) async {
-    print("💾 SAVING QUIZ");
-
+    print(" SAVING QUIZ");
+    final quizId = const Uuid().v4();
+    final createdAt = DateTime.now();
     final quizJson = jsonEncode({
       'fileName': quiz.fileName,
       'questions':
@@ -217,37 +221,82 @@ Future<void> saveSummary({
             };
           }).toList(),
     });
-
     await db
         .into(db.quizzes)
-        .insertOnConflictUpdate(
-          QuizzesCompanion.insert(documentId: documentId, quizJson: quizJson),
+        .insert(
+          QuizzesCompanion.insert(
+            id: quizId,
+            documentId: documentId,
+            quizJson: quizJson,
+            createdAt: createdAt,
+          ),
         );
-
-    print("✅ QUIZ INSERT FINISHED");
+    print("QUIZ INSERT FINISHED");
+    print(" Quiz ID: $quizId");
   }
 
-  Future<Quiz?> getQuiz(String documentId) async {
-    final row =
-        await (db.select(
-          db.quizzes,
-        )..where((tbl) => tbl.documentId.equals(documentId))).getSingleOrNull();
 
-    if (row == null) {
-      return null;
+  Future<List<QuizWithDocument>> getAllQuizzes() async {
+    final rows = await (db.select(db.quizzes)
+          ..orderBy([
+            (tbl) => OrderingTerm.desc(tbl.createdAt),
+          ]))
+        .get();
+
+    final results = <QuizWithDocument>[];
+
+    for (final row in rows) {
+      final json = jsonDecode(row.quizJson);
+
+      final questions =
+          (json['questions'] as List)
+              .map(
+                (question) => Question.fromJson(
+                  Map<String, dynamic>.from(question),
+                ),
+              )
+              .toList();
+
+      results.add(
+        QuizWithDocument(
+          documentId: row.documentId,
+          quiz: Quiz(
+            fileName: json['fileName'] as String,
+            questions: questions,
+          ),
+        ),
+      );
     }
 
-    final Map<String, dynamic> json = jsonDecode(row.quizJson);
+    return results;
+  }
 
-    final questions =
-        (json['questions'] as List)
-            .map(
-              (question) =>
-                  Question.fromJson(Map<String, dynamic>.from(question)),
-            )
-            .toList();
+  Future<List<Quiz>> getQuizzes(String documentId) async {
+    final rows =
+        await (db.select(db.quizzes)
+              ..where((tbl) => tbl.documentId.equals(documentId))
+              ..orderBy([(tbl) => OrderingTerm.desc(tbl.createdAt)]))
+            .get();
 
-    return Quiz(fileName: json['fileName'] as String, questions: questions);
+    final quizzes = <Quiz>[];
+
+    for (final row in rows) {
+      final Map<String, dynamic> json = jsonDecode(row.quizJson);
+
+      final questions =
+          (json['questions'] as List)
+              .map(
+                (question) =>
+                    Question.fromJson(Map<String, dynamic>.from(question)),
+              )
+              .toList();
+
+      quizzes.add(
+        Quiz(fileName: json['fileName'] as String, questions: questions),
+      );
+    }
+
+    return quizzes;
   }
 
   // ============================================================
@@ -258,7 +307,7 @@ Future<void> saveSummary({
     required String documentId,
     required FlashcardDeck deck,
   }) async {
-    print("💾 SAVING FLASHCARDS");
+    print("SAVING FLASHCARDS");
 
     final flashcardJson = jsonEncode({
       'fileName': deck.fileName,
@@ -277,11 +326,11 @@ Future<void> saveSummary({
           ),
         );
 
-    print("✅ FLASHCARDS INSERT FINISHED");
+    print(" FLASHCARDS INSERT FINISHED");
   }
 
   Future<FlashcardDeck?> getFlashcards(String documentId) async {
-    print("📖 LOADING FLASHCARDS");
+    print("LOADING FLASHCARDS");
 
     final row =
         await (db.select(
@@ -289,7 +338,7 @@ Future<void> saveSummary({
         )..where((tbl) => tbl.documentId.equals(documentId))).getSingleOrNull();
 
     if (row == null) {
-      print("❌ No flashcards found in SQLite");
+      print(" No flashcards found in SQLite");
       return null;
     }
 
@@ -304,8 +353,8 @@ Future<void> saveSummary({
             )
             .toList();
 
-    print("✅ Flashcards loaded from SQLite");
-    print("📚 Card count: ${flashcards.length}");
+    print(" Flashcards loaded from SQLite");
+    print("Card count: ${flashcards.length}");
 
     return FlashcardDeck(
       fileName: json['fileName'] as String,

@@ -200,17 +200,15 @@ class AiLoadingNotifier extends Notifier<AiGenerationState> {
 
       final quiz = Quiz(fileName: fileName, questions: questions);
 
-      ref.read(quizProvider.notifier).setQuiz(filePath, quiz);
-
+      ref.read(quizProvider.notifier).addQuiz(filePath, quiz);
       ref.read(aiMaterialProvider.notifier).setQuizReady(filePath);
 
       final documentRepository = DocumentRepository(ref.read(databaseProvider));
 
-      print("💾 ABOUT TO SAVE QUIZ");
-
+      print("ABOUT TO SAVE QUIZ");
       await documentRepository.saveQuiz(documentId: documentId, quiz: quiz);
 
-      print("✅ saveQuiz finished");
+      print("saveQuiz finished");
 
       await documentRepository.markQuizGenerated(documentId);
 
@@ -235,13 +233,13 @@ class AiLoadingNotifier extends Notifier<AiGenerationState> {
 
       final flashcards = await AiService.generateFlashcards(fileName, text);
 
-      print("✅ Flashcards generated");
-      print("📚 Card count: ${flashcards.flashcards.length}");
+      print("Flashcards generated");
+      print("Card count: ${flashcards.flashcards.length}");
 
       final documentRepository = DocumentRepository(ref.read(databaseProvider));
 
       // Save flashcards permanently in SQLite.
-      print("💾 ABOUT TO SAVE FLASHCARDS");
+      print("ABOUT TO SAVE FLASHCARDS");
 
       await documentRepository.saveFlashcards(
         documentId: documentId,

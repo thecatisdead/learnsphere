@@ -17,6 +17,9 @@ import '../../providers/document_provider.dart';
 
 import '../../providers/summary_provider.dart';
 
+import '../../providers/quiz_provider.dart';
+import '../quiz/quiz_screen.dart';
+
 class StudyMaterialScreen extends ConsumerStatefulWidget {
   const StudyMaterialScreen({super.key});
 
@@ -32,6 +35,7 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadSummariesFromSqlite();
+      _loadSavedQuizzes();
     });
   }
 
@@ -42,8 +46,8 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
       return;
     }
 
-    print(" Loading summaries from SQLite...");
-    print(" Document ID: ${session.documentId}");
+    print("Loading summaries from SQLite...");
+    print("Document ID: ${session.documentId}");
 
     await ref
         .read(summaryProvider.notifier)
@@ -56,6 +60,32 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
     print("Summaries loaded from SQLite into Riverpod");
   }
 
+  Future<void> _loadSavedQuizzes() async {
+    final session = ref.read(studySessionProvider);
+
+    if (session == null) {
+      return;
+    }
+
+    final existingQuizzes = ref.read(quizProvider)[session.filePath] ?? [];
+
+    if (existingQuizzes.isNotEmpty) {
+      return;
+    }
+
+    print("Loading quizzes from SQLite");
+
+    await ref
+        .read(quizProvider.notifier)
+        .loadQuizzes(
+          documentId: session.documentId,
+          filePath: session.filePath,
+          fileName: session.fileName,
+        );
+
+    print("Finished loading quizzes");
+  }
+
   @override
   Widget build(BuildContext context) {
     final session = ref.watch(studySessionProvider);
@@ -63,6 +93,10 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
     if (session == null) {
       return const Scaffold(body: Center(child: Text("No PDF selected.")));
     }
+
+    final quizMap = ref.watch(quizProvider);
+
+    final quizzes = quizMap[session.filePath] ?? [];
 
     final aiState = ref.watch(aiLoadingProvider);
 
@@ -269,21 +303,6 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
                       : () {
                         if (session == null) return;
 
-                        if (isQuizReady) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (_) => QuizScreen(
-                                    documentId: session.documentId,
-                                    filePath: session.filePath,
-                                    fileName: session.fileName,
-                                  ),
-                            ),
-                          );
-                          return;
-                        }
-
                         ref
                             .read(aiLoadingProvider.notifier)
                             .generateQuiz(
@@ -292,6 +311,7 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
                               documentId: session.documentId,
                             );
                       },
+
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.black,
                 elevation: 2, // Shadow
@@ -336,15 +356,6 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
                               color: Color(0xFF2C2C2A),
                             ),
                           )
-                          : isQuizReady
-                          ? const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.check),
-                              SizedBox(width: 8),
-                              Text("Quiz Ready"),
-                            ],
-                          )
                           : const Text(
                             "Generate Quiz",
                             style: TextStyle(
@@ -366,7 +377,46 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
                 ],
               ),
             ),
+
             const SizedBox(height: 12),
+
+            if (quizzes.isNotEmpty) ...[
+              const SizedBox(height: 8),
+
+              ExpansionTile(
+                title: Text(
+                  "${quizzes.length} Generated "
+                  "${quizzes.length == 1 ? 'Quiz' : 'Quizzes'}",
+                ),
+                children: [
+                  for (int index = 0; index < quizzes.length; index++)
+                    ListTile(
+                      leading: const Icon(Icons.quiz),
+
+                      title: Text(
+                        "${session.fileName} Generated Quiz No. ${quizzes.length - index}",
+                      ),
+
+                      subtitle: const Text("Tap to take"),
+
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (_) => QuizScreen(
+                                  documentId: session.documentId,
+                                  filePath: session.filePath,
+                                  fileName: session.fileName,
+                                  quizIndex: index,
+                                ),
+                          ),
+                        );
+                      },
+                    ),
+                ],
+              ),
+            ],
 
             ElevatedButton(
               onPressed:
