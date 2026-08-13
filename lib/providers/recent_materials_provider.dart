@@ -2,37 +2,36 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/study_session.dart';
 import '../database/document_repository.dart';
 import '../../database/database_provider.dart';
-import '../providers/quiz_provider.dart';
 
+class RecentMaterialsState {
+  final List<StudySession> materials;
+  final bool hasLoaded;
 
-class RecentMaterialsNotifier extends Notifier<List<StudySession>> {
+  const RecentMaterialsState({
+    this.materials = const [],
+    this.hasLoaded = false,
+  });
+}
+
+class RecentMaterialsNotifier extends Notifier<RecentMaterialsState> {
   @override
-  List<StudySession> build() {
-    return [];
+  RecentMaterialsState build() {
+    return const RecentMaterialsState();
   }
 
   Future<void> loadMaterials() async {
+    if (state.hasLoaded) {
+      print("Materials already loaded into Riverpod");
+      return;
+    }
 
-
-Future<void> loadSavedQuizzes() async {
-  final repository = DocumentRepository(
-    ref.read(databaseProvider),
-  );
-
-  print("Loading all quizzes from SQLite");
-
-  await ref.read(quizProvider.notifier).loadAllQuizzes();
-
-  print("Finished loading all quizzes");
-}
-
-
-
-    final repository = DocumentRepository(ref.read(databaseProvider));
+    final repository = DocumentRepository(
+      ref.read(databaseProvider),
+    );
 
     final documents = await repository.getDocuments();
 
-    state =
+    final materials =
         documents
             .take(maxMaterials)
             .map(
@@ -44,40 +43,63 @@ Future<void> loadSavedQuizzes() async {
             )
             .toList();
 
-    print("📚 LOADED MATERIALS: ${state.length}");
+    state = RecentMaterialsState(
+      materials: materials,
+      hasLoaded: true,
+    );
 
-    for (final material in state) {
-      print("📄 ${material.fileName} | ${material.filePath}");
+    print("LOADED MATERIALS: ${state.materials.length}");
+
+    for (final material in state.materials) {
+      print("${material.fileName} | ${material.filePath}");
     }
   }
 
   bool addMaterial(StudySession session) {
-    if (state.length >= maxMaterials) {
+    if (state.materials.length >= maxMaterials) {
       return false;
     }
 
-    state = [...state, session];
+    state = RecentMaterialsState(
+      materials: [...state.materials, session],
+      hasLoaded: state.hasLoaded,
+    );
+
     return true;
   }
 
   Future<void> removeMaterial(String documentId) async {
-    final repository = DocumentRepository(ref.read(databaseProvider));
+    final repository = DocumentRepository(
+      ref.read(databaseProvider),
+    );
 
     await repository.deleteDocument(documentId);
 
-    state =
-        state.where((material) => material.documentId != documentId).toList();
+    state = RecentMaterialsState(
+      materials: state.materials
+          .where(
+            (material) => material.documentId != documentId,
+          )
+          .toList(),
+      hasLoaded: state.hasLoaded,
+    );
 
-    print("🗑️ MATERIAL REMOVED: $documentId");
+    print("MATERIAL REMOVED: $documentId");
   }
 
   void clearMaterials() {
-    state = [];
+    state = RecentMaterialsState(
+      materials: const [],
+      hasLoaded: state.hasLoaded,
+    );
   }
 }
 
 final recentMaterialsProvider =
-    NotifierProvider<RecentMaterialsNotifier, List<StudySession>>(
+    NotifierProvider<
+      RecentMaterialsNotifier,
+      RecentMaterialsState
+    >(
       RecentMaterialsNotifier.new,
     );
 

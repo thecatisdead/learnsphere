@@ -48,8 +48,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final recentMaterials = ref.watch(recentMaterialsProvider);
-
+    final recentMaterials = ref.watch(recentMaterialsProvider).materials;
     final session = ref.watch(studySessionProvider);
 
     final documentAsync =
