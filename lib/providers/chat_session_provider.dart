@@ -5,10 +5,10 @@ import 'package:learnsphere/models/chat_message.dart';
 import 'package:learnsphere/models/chat_session.dart';
 import 'package:uuid/uuid.dart';
 
-class ChatSessionsNotifier extends Notifier<List<ChatSession>> {
+class ChatSessionsNotifier extends Notifier<ChatSessionsState> {
   @override
-  List<ChatSession> build() {
-    return [];
+  ChatSessionsState build() {
+    return const ChatSessionsState();
   }
 
   Future<String> createChat({required String documentId}) async {
@@ -33,7 +33,10 @@ class ChatSessionsNotifier extends Notifier<List<ChatSession>> {
     );
 
     // New chats go to the top.
-    state = [chat, ...state];
+    state = ChatSessionsState(
+      chats: [chat, ...state.chats],
+      hasLoaded: state.hasLoaded,
+    );
 
     return chatId;
   }
@@ -43,6 +46,10 @@ class ChatSessionsNotifier extends Notifier<List<ChatSession>> {
   // --------------------------------------------------
 
   Future<void> loadAllChats() async {
+    if (state.hasLoaded) {
+      print("Chats already loaded into Riverpod");
+      return;
+    }
     final repository = ChatRepository(ref.read(databaseProvider));
 
     final sessions = await repository.getSessions();
@@ -73,9 +80,9 @@ class ChatSessionsNotifier extends Notifier<List<ChatSession>> {
       );
     }
 
-    state = chats;
+    state = ChatSessionsState(chats: chats, hasLoaded: true);
 
-    print("✅ LOADED ${chats.length} CHATS FROM SQLITE");
+    print("LOADED ${chats.length} CHATS FROM SQLITE");
   }
 
   // --------------------------------------------------
@@ -83,7 +90,7 @@ class ChatSessionsNotifier extends Notifier<List<ChatSession>> {
   // --------------------------------------------------
 
   List<ChatSession> getChatsForDocument(String documentId) {
-    return state.where((chat) => chat.documentId == documentId).toList();
+    return state.chats.where((chat) => chat.documentId == documentId).toList();
   }
 
   // --------------------------------------------------
@@ -127,22 +134,26 @@ class ChatSessionsNotifier extends Notifier<List<ChatSession>> {
       updatedAt: session.updatedAt,
     );
 
-    final chatIndex = state.indexWhere((chat) => chat.id == chatId);
+    final chatIndex = state.chats.indexWhere((chat) => chat.id == chatId);
 
     if (chatIndex == -1) {
-      state = [chat, ...state];
+      state = ChatSessionsState(
+        chats: [chat, ...state.chats],
+        hasLoaded: state.hasLoaded,
+      );
     } else {
-      final updatedChats = [...state];
+      final updatedChats = [...state.chats];
 
       updatedChats.removeAt(chatIndex);
-
-      // Loaded chat becomes the most recently used chat.
       updatedChats.insert(0, chat);
 
-      state = updatedChats;
+      state = ChatSessionsState(
+        chats: updatedChats,
+        hasLoaded: state.hasLoaded,
+      );
     }
 
-    print("✅ CHAT LOADED: ${chat.id} | ${chat.messages.length} messages");
+    print("CHAT LOADED: ${chat.id} | ${chat.messages.length} messages");
   }
 
   // --------------------------------------------------
@@ -150,14 +161,12 @@ class ChatSessionsNotifier extends Notifier<List<ChatSession>> {
   // --------------------------------------------------
 
   void addMessage({required String chatId, required ChatMessage message}) {
-    final chatIndex = state.indexWhere((chat) => chat.id == chatId);
-
+    final chatIndex = state.chats.indexWhere((chat) => chat.id == chatId);
     if (chatIndex == -1) {
       return;
     }
 
-    final chat = state[chatIndex];
-
+    final chat = state.chats[chatIndex];
     final updatedMessages = [...chat.messages, message];
 
     final updatedTitle =
@@ -172,18 +181,24 @@ class ChatSessionsNotifier extends Notifier<List<ChatSession>> {
       updatedAt: DateTime.now(),
     );
 
-    final updatedChats = [...state];
-
+    final updatedChats = [...state.chats];
     updatedChats.removeAt(chatIndex);
 
     // Most recently used chat goes to the top.
     updatedChats.insert(0, updatedChat);
 
-    state = updatedChats;
+    state = ChatSessionsState(chats: updatedChats, hasLoaded: state.hasLoaded);
   }
 }
 
+class ChatSessionsState {
+  final List<ChatSession> chats;
+  final bool hasLoaded;
+
+  const ChatSessionsState({this.chats = const [], this.hasLoaded = false});
+}
+
 final chatSessionsProvider =
-    NotifierProvider<ChatSessionsNotifier, List<ChatSession>>(
+    NotifierProvider<ChatSessionsNotifier, ChatSessionsState>(
       ChatSessionsNotifier.new,
     );

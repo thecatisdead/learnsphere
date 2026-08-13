@@ -29,7 +29,7 @@ class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
   late String selectedChatId;
 
   ChatSession get currentChatSession {
-    final chats = ref.read(chatSessionsProvider);
+    final chats = ref.read(chatSessionsProvider).chats;
 
     return chats.firstWhere((chat) => chat.id == selectedChatId);
   }
@@ -229,11 +229,13 @@ class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
   @override
   Widget build(BuildContext context) {
     final session = ref.watch(studySessionProvider);
-    final allChats = ref.watch(chatSessionsProvider);
+
+    final allChats = ref.watch(chatSessionsProvider).chats;
 
     if (session == null) {
       return const Scaffold(body: Center(child: Text("No PDF selected.")));
     }
+
     final chats =
         allChats
             .where((chat) => chat.documentId == session.documentId)
