@@ -29,17 +29,7 @@ class StudyMaterialScreen extends ConsumerStatefulWidget {
 }
 
 class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
-  @override
-  void initState() {
-    super.initState();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadSummariesFromSqlite();
-      _loadSavedQuizzes();
-    });
-  }
-
-  Future<void> _loadSummariesFromSqlite() async {
+  Future<void> _loadAllSummariesFromSqlite() async {
     final session = ref.read(studySessionProvider);
 
     if (session == null) {
@@ -49,41 +39,9 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
     print("Loading summaries from SQLite...");
     print("Document ID: ${session.documentId}");
 
-    await ref
-        .read(summaryProvider.notifier)
-        .loadSummary(
-          documentId: session.documentId,
-          filePath: session.filePath,
-          fileName: session.fileName,
-        );
+    await ref.read(summaryProvider.notifier).loadAllSummaries();
 
     print("Summaries loaded from SQLite into Riverpod");
-  }
-
-  Future<void> _loadSavedQuizzes() async {
-    final session = ref.read(studySessionProvider);
-
-    if (session == null) {
-      return;
-    }
-
-    final existingQuizzes = ref.read(quizProvider)[session.filePath] ?? [];
-
-    if (existingQuizzes.isNotEmpty) {
-      return;
-    }
-
-    print("Loading quizzes from SQLite");
-
-    await ref
-        .read(quizProvider.notifier)
-        .loadQuizzes(
-          documentId: session.documentId,
-          filePath: session.filePath,
-          fileName: session.fileName,
-        );
-
-    print("Finished loading quizzes");
   }
 
   @override
@@ -94,7 +52,7 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
       return const Scaffold(body: Center(child: Text("No PDF selected.")));
     }
 
-    final quizMap = ref.watch(quizProvider);
+    final quizMap = ref.watch(quizProvider).quizzes;
 
     final quizzes = quizMap[session.filePath] ?? [];
 
@@ -295,7 +253,6 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
                 const SizedBox(height: 12),
               ],
             ),
-
             ElevatedButton(
               onPressed:
                   isBusy
@@ -314,7 +271,7 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
 
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.black,
-                elevation: 2, // Shadow
+                elevation: 2,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 30,
                   vertical: 15,
@@ -378,15 +335,16 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
               ),
             ),
 
-            const SizedBox(height: 12),
-
             if (quizzes.isNotEmpty) ...[
               const SizedBox(height: 8),
 
               ExpansionTile(
                 title: Text(
-                  "${quizzes.length} Generated "
-                  "${quizzes.length == 1 ? 'Quiz' : 'Quizzes'}",
+                  "${quizzes.length} Generated ${quizzes.length == 1 ? 'Quiz' : 'Quizzes'}",
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
                 ),
                 children: [
                   for (int index = 0; index < quizzes.length; index++)
@@ -395,9 +353,13 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
 
                       title: Text(
                         "${session.fileName} Generated Quiz No. ${quizzes.length - index}",
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
 
-                      subtitle: const Text("Tap to take"),
+                      subtitle: const Text("Tap to start"),
 
                       onTap: () {
                         Navigator.push(
@@ -418,6 +380,7 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
               ),
             ],
 
+            const SizedBox(height: 12),
             ElevatedButton(
               onPressed:
                   isBusy

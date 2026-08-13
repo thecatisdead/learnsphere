@@ -11,6 +11,7 @@ import '../models/flashcarddeck.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/quiz_with_document.dart';
+import '../models/summary_with_document.dart';
 
 class DocumentRepository {
   final AppDatabase db;
@@ -22,48 +23,57 @@ class DocumentRepository {
   // ============================================================
 
   Future<void> saveSummary({
-    required String documentId,
-    required String summary,
-  }) async {
-    print("SAVING SUMMARY");
+  required String documentId,
+  required String summary,
+}) async {
+  print("SAVING SUMMARY");
 
-    final summaryId = const Uuid().v4();
+  final summaryId = const Uuid().v4();
 
-    await db
-        .into(db.summaries)
-        .insert(
-          SummariesCompanion.insert(
-            id: summaryId,
-            documentId: documentId,
-            summaryText: summary,
-            createdAt: DateTime.now(),
-          ),
-        );
+  await db.into(db.summaries).insert(
+    SummariesCompanion.insert(
+      id: summaryId,
+      documentId: documentId,
+      summaryText: summary,
+      createdAt: DateTime.now(),
+    ),
+  );
 
-    print("SUMMARY INSERT FINISHED");
-    print("Summary ID: $summaryId");
+  print("SUMMARY INSERT FINISHED");
+  print("Summary ID: $summaryId");
+}
 
-    final rows =
-        await (db.select(db.summaries)
-              ..where((tbl) => tbl.documentId.equals(documentId))
-              ..orderBy([(tbl) => OrderingTerm.desc(tbl.createdAt)]))
-            .get();
+Future<List<Summary>> getSummaries(String documentId) {
+  return (db.select(db.summaries)
+        ..where((tbl) => tbl.documentId.equals(documentId))
+        ..orderBy([
+          (tbl) => OrderingTerm.desc(tbl.createdAt),
+        ]))
+      .get();
+}
 
-    print(" SUMMARY COUNT: ${rows.length}");
+Future<List<SummaryWithDocument>> getAllSummaries() async {
+  final rows = await (db.select(db.summaries)
+        ..orderBy([
+          (tbl) => OrderingTerm.desc(tbl.createdAt),
+        ]))
+      .get();
 
-    for (final row in rows) {
-      print("ID: ${row.id}");
-      print("TEXT LENGTH: ${row.summaryText.length}");
-      print("CREATED: ${row.createdAt}");
-    }
+  final results = <SummaryWithDocument>[];
+
+  for (final row in rows) {
+    results.add(
+      SummaryWithDocument(
+        documentId: row.documentId,
+        summaryText: row.summaryText,
+      ),
+    );
   }
 
-  Future<List<Summary>> getSummaries(String documentId) {
-    return (db.select(db.summaries)
-          ..where((tbl) => tbl.documentId.equals(documentId))
-          ..orderBy([(tbl) => OrderingTerm.desc(tbl.createdAt)]))
-        .get();
-  }
+  return results;
+}
+
+  
 
   // ============================================================
   // DOCUMENT FLAGS
@@ -362,3 +372,4 @@ class DocumentRepository {
     );
   }
 }
+

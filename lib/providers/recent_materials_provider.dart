@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/study_session.dart';
 import '../database/document_repository.dart';
 import '../../database/database_provider.dart';
+import '../providers/quiz_provider.dart';
+
 
 class RecentMaterialsNotifier extends Notifier<List<StudySession>> {
   @override
@@ -10,6 +12,22 @@ class RecentMaterialsNotifier extends Notifier<List<StudySession>> {
   }
 
   Future<void> loadMaterials() async {
+
+
+Future<void> loadSavedQuizzes() async {
+  final repository = DocumentRepository(
+    ref.read(databaseProvider),
+  );
+
+  print("Loading all quizzes from SQLite");
+
+  await ref.read(quizProvider.notifier).loadAllQuizzes();
+
+  print("Finished loading all quizzes");
+}
+
+
+
     final repository = DocumentRepository(ref.read(databaseProvider));
 
     final documents = await repository.getDocuments();

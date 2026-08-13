@@ -161,20 +161,20 @@ class AiLoadingNotifier extends Notifier<AiGenerationState> {
         summary: summaryText,
       );
 
-      print("✅ saveSummary finished");
+      print("saveSummary finished");
 
       // Only mark the document as generated after saving succeeds.
       await documentRepository.markSummaryGenerated(documentId);
 
       final savedSummaries = await documentRepository.getSummaries(documentId);
 
-      print("📚 SUMMARY COUNT: ${savedSummaries.length}");
+      print("SUMMARY COUNT: ${savedSummaries.length}");
 
       for (final saved in savedSummaries) {
-        print("📝 Summary ID: ${saved.id}");
-        print("📄 Document ID: ${saved.documentId}");
-        print("📄 Length: ${saved.summaryText.length}");
-        print("🕒 Created: ${saved.createdAt}");
+        print("Summary ID: ${saved.id}");
+        print("Document ID: ${saved.documentId}");
+        print("Length: ${saved.summaryText.length}");
+        print("Created: ${saved.createdAt}");
       }
 
       ref.invalidate(documentProvider(documentId));
@@ -186,7 +186,7 @@ class AiLoadingNotifier extends Notifier<AiGenerationState> {
     }
   }
 
-  Future generateQuiz({
+  Future<void> generateQuiz({
     required String filePath,
     required String fileName,
     required String documentId,
@@ -200,16 +200,15 @@ class AiLoadingNotifier extends Notifier<AiGenerationState> {
 
       final quiz = Quiz(fileName: fileName, questions: questions);
 
-      ref.read(quizProvider.notifier).addQuiz(filePath, quiz);
-      ref.read(aiMaterialProvider.notifier).setQuizReady(filePath);
-
       final documentRepository = DocumentRepository(ref.read(databaseProvider));
 
       print("ABOUT TO SAVE QUIZ");
+
       await documentRepository.saveQuiz(documentId: documentId, quiz: quiz);
 
       print("saveQuiz finished");
 
+      ref.read(quizProvider.notifier).addQuiz(filePath, quiz);
       await documentRepository.markQuizGenerated(documentId);
 
       ref.invalidate(documentProvider(documentId));

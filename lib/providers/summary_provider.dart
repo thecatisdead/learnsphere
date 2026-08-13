@@ -7,8 +7,13 @@ import '../database/database_provider.dart';
 class SummaryState {
   final Map<String, List<SummaryModel>> summaries;
   final bool isLoading;
+  final bool hasLoaded;
 
-  const SummaryState({this.summaries = const {}, this.isLoading = false});
+  const SummaryState({
+    this.summaries = const {},
+    this.isLoading = false,
+    this.hasLoaded = false,
+  });
 }
 
 class SummaryNotifier extends Notifier<SummaryState> {
@@ -55,41 +60,53 @@ class SummaryNotifier extends Notifier<SummaryState> {
     state = SummaryState(summaries: {}, isLoading: state.isLoading);
   }
 
-  Future<void> loadSummary({
-    required String documentId,
-    required String filePath,
-    required String fileName,
-  }) async {
-    state = SummaryState(summaries: state.summaries, isLoading: true);
-
-    final repository = DocumentRepository(ref.read(databaseProvider));
-
-    final savedSummaries = await repository.getSummaries(documentId);
-
-    print("SQLite query finished");
-
-    if (savedSummaries.isEmpty) {
-      print(" No summaries found in SQLite");
-
-      state = SummaryState(summaries: state.summaries, isLoading: false);
-
+  Future<void> loadAllSummaries() async {
+    if (state.hasLoaded) {
+      print("Summaries already loaded into Riverpod");
       return;
     }
 
-    print("Summaries found in SQLite");
-    print("Summary count: ${savedSummaries.length}");
-
-    final loadedSummaries =
-        savedSummaries.map((saved) {
-          return SummaryModel(fileName: fileName, text: saved.summaryText);
-        }).toList();
-
     state = SummaryState(
-      summaries: {...state.summaries, filePath: loadedSummaries},
-      isLoading: false,
+      summaries: state.summaries,
+      isLoading: true,
+      hasLoaded: false,
     );
 
-    print("⚡ All summaries loaded into Riverpod");
+    final repository = DocumentRepository(ref.read(databaseProvider));
+
+    print("Loading all summaries from SQLite");
+
+    final savedSummaries = await repository.getAllSummaries();
+
+    final loadedSummaries = <String, List<SummaryModel>>{};
+
+    for (final item in savedSummaries) {
+      final document = await repository.getDocumentById(item.documentId);
+
+      if (document == null) {
+        continue;
+      }
+
+      final summary = SummaryModel(
+        fileName: document.fileName,
+        text: item.summaryText,
+      );
+
+      loadedSummaries.update(
+        document.filePath,
+        (existingSummaries) => [...existingSummaries, summary],
+        ifAbsent: () => [summary],
+      );
+    }
+
+    state = SummaryState(
+      summaries: loadedSummaries,
+      isLoading: false,
+      hasLoaded: true,
+    );
+
+    print("All summaries loaded into Riverpod");
+    print("Documents with summaries: ${loadedSummaries.length}");
   }
 }
 

@@ -34,7 +34,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final quizMap = ref.watch(quizProvider);
+    final quizMap = ref.watch(quizProvider).quizzes;
 
     final quizzes = quizMap[widget.filePath] ?? [];
 

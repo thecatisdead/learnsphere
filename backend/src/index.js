@@ -207,6 +207,11 @@ You are an AI that generates study quizzes.
 
 Based on the following document, generate exactly ${questionsForThisChunk} multiple-choice questions.
 
+- Generate a fresh and varied set of questions.
+- Each question must test a different concept, fact, definition, relationship, or important detail from the document.
+- Avoid duplicate or near-duplicate questions.
+- Avoid repeatedly focusing on the same part of the document when other important information is available.
+
 Rules:
 - Return ONLY valid JSON.
 - Do NOT use markdown.

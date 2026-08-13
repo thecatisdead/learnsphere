@@ -47,13 +47,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen> {
     // Load from SQLite.
     print("Loading summaries from SQLite...");
 
-    await ref
-        .read(summaryProvider.notifier)
-        .loadSummary(
-          documentId: widget.documentId,
-          filePath: widget.filePath,
-          fileName: widget.fileName,
-        );
+    await ref.read(summaryProvider.notifier).loadAllSummaries();
 
     print("STEP: loadSummary finished");
   }

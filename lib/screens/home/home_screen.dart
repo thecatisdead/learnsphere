@@ -19,6 +19,8 @@ import 'package:learnsphere/providers/chat_session_provider.dart';
 import 'package:learnsphere/database/document_repository.dart';
 import 'package:learnsphere/services/file_hash_service.dart';
 import '../../providers/document_provider.dart';
+import '../../providers/quiz_provider.dart';
+import '../../providers/summary_provider.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -35,7 +37,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     Future.microtask(() async {
       await ref.read(chatSessionsProvider.notifier).loadAllChats();
+
       await ref.read(recentMaterialsProvider.notifier).loadMaterials();
+
+      await ref.read(summaryProvider.notifier).loadAllSummaries();
+
+      await ref.read(quizProvider.notifier).loadAllQuizzes();
     });
   }
 
