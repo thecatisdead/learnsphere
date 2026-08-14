@@ -2,77 +2,103 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/flashcarddeck.dart';
 import '../database/document_repository.dart';
+
+
 import '../database/database_provider.dart';
 
-class FlashcardNotifier
-    extends Notifier<Map<String, FlashcardDeck>> {
+class FlashcardState {
+  final Map<String, FlashcardDeck> flashcards;
+  final bool hasLoaded;
+
+  const FlashcardState({
+    this.flashcards = const {},
+    this.hasLoaded = false,
+  });
+}
+
+class FlashcardNotifier extends Notifier<FlashcardState> {
   @override
-  Map<String, FlashcardDeck> build() {
-    return {};
+  FlashcardState build() {
+    return const FlashcardState();
   }
 
+  // Store one flashcard deck for each PDF.
   void setFlashcardDeck(
     String filePath,
     FlashcardDeck deck,
   ) {
-    state = {
-      ...state,
-      filePath: deck,
-    };
+    state = FlashcardState(
+      flashcards: {
+        ...state.flashcards,
+        filePath: deck,
+      },
+      hasLoaded: state.hasLoaded,
+    );
   }
 
   FlashcardDeck? getFlashcardDeck(String filePath) {
-    return state[filePath];
+    return state.flashcards[filePath];
   }
 
-  Future<void> loadFlashcards({
-    required String documentId,
-    required String filePath,
-  }) async {
-    print("LOAD FLASHCARDS CALLED");
-    print("Document ID: $documentId");
+  // Load all flashcards from SQLite only once.
+  Future<void> loadAllFlashcards() async {
+    if (state.hasLoaded) {
+      print("Flashcards already loaded into Riverpod");
+      return;
+    }
 
     final repository = DocumentRepository(
       ref.read(databaseProvider),
     );
 
+    print("Loading all flashcards from SQLite");
+
     final savedFlashcards =
-        await repository.getFlashcards(documentId);
+        await repository.getAllFlashcards();
 
-    print("SQLite flashcard query finished");
+    final loadedFlashcards =
+        <String, FlashcardDeck>{};
 
-    if (savedFlashcards == null) {
-      print(" No flashcards found in SQLite");
-      return;
+    for (final item in savedFlashcards) {
+      final document = await repository.getDocumentById(
+        item.documentId,
+      );
+
+      if (document == null) {
+        continue;
+      }
+
+      loadedFlashcards[document.filePath] = item.deck;
     }
 
-    print("Flashcards found in SQLite");
+    state = FlashcardState(
+      flashcards: loadedFlashcards,
+      hasLoaded: true,
+    );
+
+    print("All flashcards loaded into Riverpod");
     print(
-      "Card count: ${savedFlashcards.flashcards.length}",
+      "Documents with flashcards: ${loadedFlashcards.length}",
     );
-
-    setFlashcardDeck(
-      filePath,
-      savedFlashcards,
-    );
-
-    print("⚡ Flashcards loaded into Riverpod");
   }
 
   void clearFlashcards(String filePath) {
-    final newState = {...state};
-    newState.remove(filePath);
-    state = newState;
+    final newFlashcards = {...state.flashcards};
+
+    newFlashcards.remove(filePath);
+
+    state = FlashcardState(
+      flashcards: newFlashcards,
+      hasLoaded: state.hasLoaded,
+    );
   }
 
   void clearAll() {
-    state = {};
+    state = const FlashcardState();
   }
 }
 
 final flashcardProvider =
-    NotifierProvider<
-        FlashcardNotifier,
-        Map<String, FlashcardDeck>>(
+    NotifierProvider<FlashcardNotifier, FlashcardState>(
   FlashcardNotifier.new,
 );

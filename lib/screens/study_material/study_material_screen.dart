@@ -10,7 +10,6 @@ import '../../database/database_provider.dart';
 
 import '../../shared/widgets/loadingdots_widget.dart';
 import '/../screens/quiz/quiz_screen.dart';
-import '/../screens/flashcard/flashcard_screen.dart';
 import '../../database/chat_repository.dart';
 
 import '../../providers/document_provider.dart';
@@ -18,7 +17,10 @@ import '../../providers/document_provider.dart';
 import '../../providers/summary_provider.dart';
 
 import '../../providers/quiz_provider.dart';
-import '../quiz/quiz_screen.dart';
+
+import '../../providers/flashcard_provider.dart';
+
+import '../flashcard/flashcard_screen.dart';
 
 class StudyMaterialScreen extends ConsumerStatefulWidget {
   const StudyMaterialScreen({super.key});
@@ -29,19 +31,31 @@ class StudyMaterialScreen extends ConsumerStatefulWidget {
 }
 
 class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
-  Future<void> _loadAllSummariesFromSqlite() async {
+  @override
+  void initState() {
+    super.initState();
+
+    Future.microtask(() {
+      _loadStudyMaterialsFromSqlite();
+    });
+  }
+
+  Future<void> _loadStudyMaterialsFromSqlite() async {
     final session = ref.read(studySessionProvider);
 
     if (session == null) {
       return;
     }
 
-    print("Loading summaries from SQLite...");
+    print("Loading study materials from SQLite...");
     print("Document ID: ${session.documentId}");
 
     await ref.read(summaryProvider.notifier).loadAllSummaries();
 
-    print("Summaries loaded from SQLite into Riverpod");
+    await ref.read(quizProvider.notifier).loadAllQuizzes();
+
+    await ref.read(flashcardProvider.notifier).loadAllFlashcards();
+    print("Study materials loaded into Riverpod");
   }
 
   @override
@@ -381,6 +395,8 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
             ],
 
             const SizedBox(height: 12),
+
+            // MAIN FLASHCARD BUTTON
             ElevatedButton(
               onPressed:
                   isBusy
@@ -392,7 +408,10 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => FlashcardScreen(),
+                              builder:
+                                  (_) => FlashcardScreen(
+                                    filePath: session.filePath,
+                                  ),
                             ),
                           );
                           return;
@@ -407,7 +426,7 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
                             );
                       },
               style: ElevatedButton.styleFrom(
-                elevation: 2, // Shadow
+                elevation: 2,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 30,
                   vertical: 15,
@@ -486,6 +505,39 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
                 ],
               ),
             ),
+
+            // TRY AGAIN BUTTON
+            const SizedBox(height: 12),
+
+            if (isFlashcardReady)
+              ElevatedButton.icon(
+                onPressed:
+                    isBusy
+                        ? null
+                        : () {
+                          if (session == null) return;
+
+                          ref
+                              .read(aiLoadingProvider.notifier)
+                              .generateFlashcards(
+                                filePath: session.filePath,
+                                fileName: session.fileName,
+                                documentId: session.documentId,
+                              );
+                        },
+                icon: const Icon(Icons.refresh),
+                label: const Text("Try Again"),
+                style: ElevatedButton.styleFrom(
+                  elevation: 2,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 30,
+                    vertical: 15,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
 
             const SizedBox(height: 12),
             ElevatedButton(

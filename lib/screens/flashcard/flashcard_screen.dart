@@ -6,8 +6,16 @@ import '/app/main_navigation.dart';
 import '../../providers/flashcard_provider.dart';
 import '../../providers/study_session_provider.dart';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../models/flashcarddeck.dart';
+import '../../database/document_repository.dart';
+import '../../database/database_provider.dart';
+
 class FlashcardScreen extends ConsumerStatefulWidget {
-  const FlashcardScreen({super.key});
+  final String filePath;
+
+  const FlashcardScreen({super.key, required this.filePath});
 
   @override
   ConsumerState<FlashcardScreen> createState() => _FlashcardScreenState();
@@ -28,21 +36,7 @@ class _FlashcardScreenState extends ConsumerState<FlashcardScreen> {
   Future<void> _loadFlashcards() async {
     print("FLASHCARD SCREEN LOAD");
 
-    final session = ref.read(studySessionProvider);
-
-    if (session == null) {
-      print("No study session");
-      return;
-    }
-
-    print("Document ID: ${session.documentId}");
-    print("File path: ${session.filePath}");
-
-    final flashcardMap = ref.read(flashcardProvider);
-
-    print("Riverpod flashcards: $flashcardMap");
-
-    final cachedDeck = flashcardMap[session.filePath];
+    final cachedDeck = ref.read(flashcardProvider).flashcards[widget.filePath];
 
     if (cachedDeck != null) {
       print("Flashcards found in Riverpod");
@@ -50,24 +44,16 @@ class _FlashcardScreenState extends ConsumerState<FlashcardScreen> {
       return;
     }
 
-    print("Flashcards not found in Riverpod");
-
-    await ref
-        .read(flashcardProvider.notifier)
-        .loadFlashcards(
-          documentId: session.documentId,
-          filePath: session.filePath,
-        );
+    print("No flashcards found in Riverpod");
 
     print("STEP: Flashcard SQLite load finished");
   }
 
   @override
   Widget build(BuildContext context) {
-    final flashcardMap = ref.watch(flashcardProvider);
-    final session = ref.watch(studySessionProvider);
-
-    final deck = session == null ? null : flashcardMap[session.filePath];
+    final deck = ref.watch(
+      flashcardProvider.select((state) => state.flashcards[widget.filePath]),
+    );
 
     if (deck == null) {
       return const Scaffold(body: Center(child: Text("No flashcards found.")));

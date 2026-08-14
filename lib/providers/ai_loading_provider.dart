@@ -251,7 +251,6 @@ class AiLoadingNotifier extends Notifier<AiGenerationState> {
       ref
           .read(flashcardProvider.notifier)
           .setFlashcardDeck(filePath, flashcards);
-
       print("⚡ Flashcards stored in Riverpod");
 
       // Tell the UI that flashcards are ready.

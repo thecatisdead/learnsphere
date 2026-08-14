@@ -22,6 +22,7 @@ import '../../providers/document_provider.dart';
 import '../../providers/quiz_provider.dart';
 import '../../providers/summary_provider.dart';
 
+
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -40,9 +41,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
       await ref.read(recentMaterialsProvider.notifier).loadMaterials();
 
-      await ref.read(summaryProvider.notifier).loadAllSummaries();
-
-      await ref.read(quizProvider.notifier).loadAllQuizzes();
     });
   }
 
