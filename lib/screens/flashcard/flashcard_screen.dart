@@ -4,13 +4,6 @@ import 'package:flip_card/flip_card.dart';
 import '/app/main_navigation.dart';
 
 import '../../providers/flashcard_provider.dart';
-import '../../providers/study_session_provider.dart';
-
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../models/flashcarddeck.dart';
-import '../../database/document_repository.dart';
-import '../../database/database_provider.dart';
 
 class FlashcardScreen extends ConsumerStatefulWidget {
   final String filePath;

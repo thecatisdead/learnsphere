@@ -395,6 +395,53 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
             ],
 
             const SizedBox(height: 12),
+            const Divider(
+              color: Color(0xFF2C2C2A), // Color of the line
+              thickness: 2.0, // Thickness of the line
+              height:
+                  20.0, // Total height allocated to the widget (includes padding)
+              indent: 10.0, // Empty space to the left of the line
+              endIndent: 10.0, // Empty space to the right of the line
+            ),
+
+            // TRY AGAIN BUTTON
+            const SizedBox(height: 12),
+
+            if (isFlashcardReady)
+              ElevatedButton.icon(
+                onPressed:
+                    isBusy
+                        ? null
+                        : () {
+                          if (session == null) return;
+
+                          ref
+                              .read(aiLoadingProvider.notifier)
+                              .generateFlashcards(
+                                filePath: session.filePath,
+                                fileName: session.fileName,
+                                documentId: session.documentId,
+                              );
+                        },
+
+                icon: const Icon(Icons.refresh, color: Colors.black),
+                label: const Text(
+                  "Generate New Flashcards",
+                  style: TextStyle(color: Colors.black),
+                ),
+                style: ElevatedButton.styleFrom(
+                  elevation: 2,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 30,
+                    vertical: 15,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+
+            const SizedBox(height: 12),
 
             // MAIN FLASHCARD BUTTON
             ElevatedButton(
@@ -505,39 +552,6 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
                 ],
               ),
             ),
-
-            // TRY AGAIN BUTTON
-            const SizedBox(height: 12),
-
-            if (isFlashcardReady)
-              ElevatedButton.icon(
-                onPressed:
-                    isBusy
-                        ? null
-                        : () {
-                          if (session == null) return;
-
-                          ref
-                              .read(aiLoadingProvider.notifier)
-                              .generateFlashcards(
-                                filePath: session.filePath,
-                                fileName: session.fileName,
-                                documentId: session.documentId,
-                              );
-                        },
-                icon: const Icon(Icons.refresh),
-                label: const Text("Try Again"),
-                style: ElevatedButton.styleFrom(
-                  elevation: 2,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 30,
-                    vertical: 15,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
 
             const SizedBox(height: 12),
             ElevatedButton(
