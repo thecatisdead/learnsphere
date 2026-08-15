@@ -256,7 +256,6 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
                                       filePath: session.filePath,
                                       fileName: session.fileName,
                                       summary: selectedSummary,
-
                                     ),
                               ),
                             );
@@ -366,7 +365,6 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
                   for (int index = 0; index < quizzes.length; index++)
                     ListTile(
                       leading: const Icon(Icons.quiz),
-
                       title: Text(
                         "${session.fileName} Generated Quiz No. ${quizzes.length - index}",
                         style: const TextStyle(
@@ -374,9 +372,7 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-
                       subtitle: const Text("Tap to start"),
-
                       onTap: () {
                         Navigator.push(
                           context,
@@ -386,7 +382,7 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
                                   documentId: session.documentId,
                                   filePath: session.filePath,
                                   fileName: session.fileName,
-                                  quizIndex: index,
+                                  quiz: quizzes[index], // exact quiz clicked
                                 ),
                           ),
                         );

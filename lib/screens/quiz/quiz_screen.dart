@@ -2,22 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../result/result_screen.dart';
-import '../../providers/quiz_provider.dart';
-
-
+import '../../models/quiz.dart';
 
 class QuizScreen extends ConsumerStatefulWidget {
   final String documentId;
   final String filePath;
   final String fileName;
-  final int quizIndex;
+  final Quiz quiz;
 
   const QuizScreen({
     super.key,
     required this.fileName,
     required this.documentId,
     required this.filePath,
-    required this.quizIndex,
+    required this.quiz,
   });
 
   @override
@@ -34,19 +32,8 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final quizMap = ref.watch(quizProvider).quizzes;
-
-    final quizzes = quizMap[widget.filePath] ?? [];
-
-    if (quizzes.isEmpty) {
-      return const Scaffold(body: Center(child: Text("Quiz not found.")));
-    }
-
-    if (widget.quizIndex >= quizzes.length) {
-      return const Scaffold(body: Center(child: Text("Quiz not found.")));
-    }
-
-    final quiz = quizzes[widget.quizIndex];
+    // Use the exact quiz that was clicked.
+    final quiz = widget.quiz;
 
     final questions = quiz.questions;
 
@@ -57,7 +44,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text("Quiz ${widget.quizIndex + 1}")),
+      appBar: AppBar(title: const Text("Quiz")),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -114,18 +101,17 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (context) {
-                        return ResultScreen(
-                          score: score,
-                          totalQuestions: questions.length,
-                          fileName: widget.fileName,
-                          questions: quiz.questions,
-                          userAnswers: userAnswers,
-                          documentId: widget.documentId,
-                          filePath: widget.filePath,
-                          quizIndex: widget.quizIndex,
-                        );
-                      },
+                      builder:
+                          (context) => ResultScreen(
+                            score: score,
+                            totalQuestions: questions.length,
+                            fileName: widget.fileName,
+                            questions: quiz.questions,
+                            userAnswers: userAnswers,
+                            documentId: widget.documentId,
+                            filePath: widget.filePath,
+                            quiz: quiz,
+                          ),
                     ),
                   );
                 }
