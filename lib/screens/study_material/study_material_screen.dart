@@ -255,6 +255,8 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
                                       documentId: session.documentId,
                                       filePath: session.filePath,
                                       fileName: session.fileName,
+                                      summary: selectedSummary,
+
                                     ),
                               ),
                             );

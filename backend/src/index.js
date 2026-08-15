@@ -262,7 +262,7 @@ ${chunk}
 					return Response.json({ error: "Context is required." }, { status: 400 });
 				}
 
-				const prompt = `
+const prompt = `
 You are an expert study assistant.
 
 Summarize the following study material into concise bullet points.
@@ -272,11 +272,15 @@ Rules:
 - Keep the summary clear and useful for studying.
 - Do not invent information that is not present in the study material.
 - Use concise bullet points.
+- Generate a fresh alternative summary each time this request is made.
+- Avoid repeating the exact wording, sentence structure, ordering, and grouping used in a previous possible summary.
+- Vary the organization and emphasis of the important concepts when possible.
+- You may highlight different important details from the study material, but remain accurate and grounded only in the provided material.
+- Do not mention that this is an alternative or regenerated summary.
 
 STUDY MATERIAL:
 ${context}
 `;
-
 				const response = await generateViaProxy(env, "gemini-3.5-flash-lite", prompt);
 
 				return Response.json({ summary: response.text });
