@@ -14,6 +14,8 @@ import 'package:learnsphere/database/database_provider.dart';
 import '../database/document_repository.dart';
 import '../providers/document_provider.dart';
 
+import 'package:learnsphere/services/error_service.dart';
+
 enum AiTask { none, summary, quiz, flashcards }
 
 enum AiTaskStatus { idle, generating, ready, error }
@@ -25,11 +27,14 @@ class AiGenerationState {
   final AiTaskStatus quizStatus;
   final AiTaskStatus flashcardStatus;
 
+  final String? errorMessage;
+
   const AiGenerationState({
     this.filePath,
     this.summaryStatus = AiTaskStatus.idle,
     this.quizStatus = AiTaskStatus.idle,
     this.flashcardStatus = AiTaskStatus.idle,
+    this.errorMessage,
   });
 
   AiGenerationState copyWith({
@@ -37,12 +42,14 @@ class AiGenerationState {
     AiTaskStatus? summaryStatus,
     AiTaskStatus? quizStatus,
     AiTaskStatus? flashcardStatus,
+    String? errorMessage,
   }) {
     return AiGenerationState(
       filePath: filePath ?? this.filePath,
       summaryStatus: summaryStatus ?? this.summaryStatus,
       quizStatus: quizStatus ?? this.quizStatus,
       flashcardStatus: flashcardStatus ?? this.flashcardStatus,
+      errorMessage: errorMessage ?? this.errorMessage,
     );
   }
 }
@@ -110,23 +117,42 @@ class AiLoadingNotifier extends Notifier<AiGenerationState> {
     }
   }
 
-  void error(AiTask task) {
+  void error(AiTask task, String message) {
     switch (task) {
       case AiTask.summary:
-        state = state.copyWith(summaryStatus: AiTaskStatus.error);
+        state = state.copyWith(
+          summaryStatus: AiTaskStatus.error,
+          errorMessage: message,
+        );
         break;
 
       case AiTask.quiz:
-        state = state.copyWith(quizStatus: AiTaskStatus.error);
+        state = state.copyWith(
+          quizStatus: AiTaskStatus.error,
+          errorMessage: message,
+        );
         break;
 
       case AiTask.flashcards:
-        state = state.copyWith(flashcardStatus: AiTaskStatus.error);
+        state = state.copyWith(
+          flashcardStatus: AiTaskStatus.error,
+          errorMessage: message,
+        );
         break;
 
       case AiTask.none:
         break;
     }
+  }
+
+  void clearError() {
+    state = AiGenerationState(
+      filePath: state.filePath,
+      summaryStatus: state.summaryStatus,
+      quizStatus: state.quizStatus,
+      flashcardStatus: state.flashcardStatus,
+      errorMessage: null,
+    );
   }
 
   void reset() {
@@ -145,7 +171,7 @@ class AiLoadingNotifier extends Notifier<AiGenerationState> {
 
       final summaryText = await AiService.generateSummary(text);
 
-      print("✅ Summary generated");
+      print(" Summary generated");
 
       final summary = SummaryModel(fileName: fileName, text: summaryText);
 
@@ -181,8 +207,12 @@ class AiLoadingNotifier extends Notifier<AiGenerationState> {
 
       finish(AiTask.summary);
     } catch (e) {
-      error(AiTask.summary);
-      print(e.toString());
+      final message = getFriendlyError(e);
+
+      error(AiTask.summary, message);
+
+      print("SUMMARY ERROR: $e");
+      print("FRIENDLY ERROR: $message");
     }
   }
 
@@ -215,8 +245,12 @@ class AiLoadingNotifier extends Notifier<AiGenerationState> {
 
       finish(AiTask.quiz);
     } catch (e) {
-      error(AiTask.quiz);
-      print(e.toString());
+      final message = getFriendlyError(e);
+
+      error(AiTask.quiz, message);
+
+      print("QUIZ ERROR: $e");
+      print("FRIENDLY ERROR: $message");
     }
   }
 
@@ -265,8 +299,12 @@ class AiLoadingNotifier extends Notifier<AiGenerationState> {
 
       print("FLASHCARD GENERATION FINISHED");
     } catch (e) {
-      error(AiTask.flashcards);
+      final message = getFriendlyError(e);
+
+      error(AiTask.flashcards, message);
+
       print("FLASHCARD ERROR: $e");
+      print("FRIENDLY ERROR: $message");
     }
   }
 }

@@ -5,7 +5,47 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../models/chat_message.dart';
 
+import 'dart:async';
+import 'dart:io';
+
 class AiService {
+  static Future<http.Response> postRequest({
+    required String url,
+    required Map<String, dynamic> body,
+  }) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse(url),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: 40));
+
+      if (response.statusCode == 429) {
+        throw Exception(
+          "RATE_LIMIT: Too many requests. Please try again later.",
+        );
+      }
+
+      if (response.statusCode >= 500) {
+        throw Exception(
+          "SERVER_ERROR: The AI server is currently unavailable.",
+        );
+      }
+
+      if (response.statusCode != 200) {
+        throw Exception("REQUEST_ERROR: ${response.body}");
+      }
+
+      return response;
+    } on TimeoutException {
+      throw Exception("TIMEOUT: The request took too long. Please try again.");
+    } on SocketException {
+      throw Exception("NO_INTERNET: Please check your internet connection.");
+    }
+  }
+
   //Quiz
 
   static Future<List<Question>> generateQuiz(String text) async {
@@ -30,16 +70,10 @@ class AiService {
       print("GENERATING QUIZ CHUNK");
       print("Questions: $questionsForThisChunk");
       print("Chunk length: ${chunk.length}");
-
-      final response = await http.post(
-        Uri.parse('https://backend.regeryl1100.workers.dev/quiz'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'chunk': chunk,
-          'questionsForThisChunk': questionsForThisChunk,
-        }),
+      final response = await postRequest(
+        url: 'https://backend.regeryl1100.workers.dev/quiz',
+        body: {'chunk': chunk, 'questionsForThisChunk': questionsForThisChunk},
       );
-
       if (response.statusCode != 200) {
         throw Exception(response.body);
       }
@@ -87,21 +121,14 @@ class AiService {
   //Summary
   static Future<String> summarizeChunk(String chunk) async {
     print("GENERATING SUMMARY CHUNK");
-
     print("Chunk length: ${chunk.length}");
 
-    final response = await http.post(
-      Uri.parse('https://backend.regeryl1100.workers.dev/summary'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'context': chunk}),
+    final response = await postRequest(
+      url: 'https://backend.regeryl1100.workers.dev/summary',
+      body: {'context': chunk},
     );
 
-    if (response.statusCode != 200) {
-      throw Exception(response.body);
-    }
-
     final data = jsonDecode(response.body);
-
     return data['summary'] as String;
   }
 
@@ -116,15 +143,10 @@ class AiService {
     final List<Flashcard> flashcards = [];
 
     for (final chunk in chunks) {
-      final response = await http.post(
-        Uri.parse('https://backend.regeryl1100.workers.dev/flashcards'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'context': chunk}),
+      final response = await postRequest(
+        url: 'https://backend.regeryl1100.workers.dev/flashcards',
+        body: {'context': chunk},
       );
-
-      if (response.statusCode != 200) {
-        throw Exception(response.body);
-      }
 
       final data = jsonDecode(response.body);
 
@@ -147,29 +169,23 @@ class AiService {
     required List<ChatMessage> history,
   }) async {
     Future<String> attempt() async {
-      final response = await http
-          .post(
-            Uri.parse('https://backend.regeryl1100.workers.dev/chat'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'fileName': fileName,
-              'question': question,
-              'history':
-                  history
-                      .map(
-                        (m) => {
-                          'role': m.isUser ? 'user' : 'assistant',
-                          'text': m.text,
-                        },
-                      )
-                      .toList(),
-            }),
-          )
-          .timeout(const Duration(seconds: 40));
+      final response = await postRequest(
+        url: 'https://backend.regeryl1100.workers.dev/chat',
+        body: {
+          'fileName': fileName,
+          'question': question,
+          'history':
+              history
+                  .map(
+                    (m) => {
+                      'role': m.isUser ? 'user' : 'assistant',
+                      'text': m.text,
+                    },
+                  )
+                  .toList(),
+        },
+      );
 
-      if (response.statusCode != 200) {
-        throw Exception(response.body);
-      }
       final data = jsonDecode(response.body);
       return data['answer'] as String;
     }
@@ -188,14 +204,9 @@ class AiService {
   }) async {
     final chunks = splitIntoChunks(text);
 
-    final response = await http.post(
-      Uri.parse('https://backend.regeryl1100.workers.dev/index-pdf'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'fileName': fileName, 'chunks': chunks}),
+    await postRequest(
+      url: 'https://backend.regeryl1100.workers.dev/index-pdf',
+      body: {'fileName': fileName, 'chunks': chunks},
     );
-
-    if (response.statusCode != 200) {
-      throw Exception(response.body);
-    }
   }
 }

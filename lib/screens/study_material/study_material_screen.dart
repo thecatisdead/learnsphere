@@ -60,12 +60,43 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<AiGenerationState>(aiLoadingProvider, (previous, next) {
+      if (next.errorMessage != null &&
+          next.errorMessage != previous?.errorMessage) {
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: const Row(
+                children: [
+                  Icon(Icons.error_outline, color: Colors.red),
+                  SizedBox(width: 8),
+                  Text("Generation Failed"),
+                ],
+              ),
+              content: Text(next.errorMessage!),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+
+                    ref.read(aiLoadingProvider.notifier).clearError();
+                  },
+                  child: const Text("OK"),
+                ),
+              ],
+            );
+          },
+        );
+      }
+    });
+
+    // KEEP THIS
     final session = ref.watch(studySessionProvider);
 
     if (session == null) {
       return const Scaffold(body: Center(child: Text("No PDF selected.")));
     }
-
     final quizMap = ref.watch(quizProvider).quizzes;
 
     final quizzes = quizMap[session.filePath] ?? [];
