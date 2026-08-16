@@ -61,8 +61,7 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
   @override
   Widget build(BuildContext context) {
     ref.listen<AiGenerationState>(aiLoadingProvider, (previous, next) {
-      if (next.errorMessage != null &&
-          next.errorMessage != previous?.errorMessage) {
+      if (next.errorMessage != null) {
         showDialog(
           context: context,
           builder: (context) {

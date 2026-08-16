@@ -301,7 +301,6 @@ class _StudyChatScreenState extends ConsumerState<StudyChatScreen> {
 
                     return ListTile(
                       title: Text(chat.title),
-                      subtitle: Text("${chat.messages.length} messages"),
                       selected: chat.id == selectedChatId,
                       onTap: () async {
                         await ref
