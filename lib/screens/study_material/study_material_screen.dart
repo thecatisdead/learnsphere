@@ -111,6 +111,9 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(0),
+              ),
               child: ListTile(
                 leading: const Icon(
                   Icons.picture_as_pdf,
@@ -391,10 +394,11 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
                 ],
               ),
             ],
+            const SizedBox(height: 12),
 
             const SizedBox(height: 12),
             const Divider(
-              color: Color(0xFF2C2C2A), // Color of the line
+              color: Color(0xFF5F5E5A),
               thickness: 2.0, // Thickness of the line
               height:
                   20.0, // Total height allocated to the widget (includes padding)

@@ -22,7 +22,6 @@ import '../../providers/document_provider.dart';
 import '../../providers/quiz_provider.dart';
 import '../../providers/summary_provider.dart';
 
-
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -40,7 +39,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       await ref.read(chatSessionsProvider.notifier).loadAllChats();
 
       await ref.read(recentMaterialsProvider.notifier).loadMaterials();
-
     });
   }
 
@@ -81,6 +79,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
 
           UploadCard(
+            isUploading: _isUploading,
             onTap: () async {
               if (_isUploading) return;
 
@@ -96,12 +95,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
                 if (result == null) {
                   return;
+
+                  // your existing code...
                 }
 
                 final fileName = result.files.single.name;
                 final filePath = result.files.single.path!;
 
-                print("📄 PDF SELECTED: $fileName");
+                print("PDF SELECTED: $fileName");
 
                 // --------------------------------------------------
                 // 1. Calculate PDF identity
@@ -109,7 +110,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
                 final contentHash = await FileHashService.sha256File(filePath);
 
-                print("🔐 PDF HASH: $contentHash");
+                print("PDF HASH: $contentHash");
 
                 // --------------------------------------------------
                 // 2. Find existing document or create a new one
@@ -126,7 +127,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   contentHash: contentHash,
                 );
 
-                print("📚 DOCUMENT ID: ${document.id}");
+                print("DOCUMENT ID: ${document.id}");
 
                 // --------------------------------------------------
                 // 3. Create StudySession
@@ -146,7 +147,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     .read(pdfTextProvider.notifier)
                     .loadText(session.filePath);
 
-                print("📚 Indexing ${session.fileName}");
+                print("Indexing ${session.fileName}");
 
                 // --------------------------------------------------
                 // 5. Index PDF for AI
@@ -157,7 +158,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   text: text,
                 );
 
-                print("✅ PDF indexed");
+                print("PDF indexed");
 
                 // --------------------------------------------------
                 // 6. Add to recent materials
@@ -186,13 +187,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
                 ref.read(studySessionProvider.notifier).setSession(session);
 
-                print("✅ STUDY SESSION SET");
+                print("STUDY SESSION SET");
 
                 // --------------------------------------------------
                 // 7. Set current study session
                 // --------------------------------------------------
               } catch (e) {
-                print("❌ PDF UPLOAD ERROR: $e");
+                print("PDF UPLOAD ERROR: $e");
 
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(

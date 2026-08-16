@@ -1,60 +1,56 @@
 import 'package:flutter/material.dart';
 
 class UploadCard extends StatelessWidget {
-  final VoidCallback? onTap;
-  final String? selectedFileName;
+  final VoidCallback onTap;
+  final bool isUploading;
 
   const UploadCard({
     super.key,
-    this.onTap,
-    this.selectedFileName,
+    required this.onTap,
+    required this.isUploading,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+    return InkWell(
+      onTap: isUploading ? null : onTap,
+      child: Card(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              Icon(
-                Icons.upload_file_rounded,
-                size: 24,
-              ),
+              isUploading
+                  ? const SizedBox(
+                      width: 28,
+                      height: 28,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 3,
+                      ),
+                    )
+                  : const Icon(
+                      Icons.upload_file,
+                      size: 28,
+                    ),
 
-              const SizedBox(width: 14),
+              const SizedBox(width: 12),
 
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    "Add Study Material",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                  Text(
+                    isUploading
+                        ? "Uploading PDF..."
+                        : "Upload Study Material",
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-
-                  const SizedBox(height: 3),
-
                   Text(
-                    "Upload a PDF to start learning",
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade600,
-                    ),
+                    isUploading
+                        ? "Please wait..."
+                        : "Upload a PDF to start studying",
                   ),
                 ],
-              ),
-
-              const Spacer(),
-
-              const Icon(
-                Icons.chevron_right_rounded,
-                size: 22,
               ),
             ],
           ),
