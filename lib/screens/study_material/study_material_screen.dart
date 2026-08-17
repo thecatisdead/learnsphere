@@ -223,20 +223,28 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           isGeneratingSummary
-                              ? const LoadingDots(
+                              ? LoadingDots(
                                 text: "Generating Summary",
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
-                                  color: Color(0xFF2C2C2A),
+                                  color:
+                                      Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? Colors.white
+                                          : const Color(0xFF2C2C2A),
                                 ),
                               )
-                              : const Text(
+                              : Text(
                                 "Generate Summary",
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
-                                  color: Color(0xFF2C2C2A),
+                                  color:
+                                      Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? Colors.white
+                                          : const Color(0xFF2C2C2A),
                                 ),
                               ),
 
@@ -353,20 +361,28 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       isQuizLoading
-                          ? const LoadingDots(
+                          ? LoadingDots(
                             text: "Generating Quiz",
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
-                              color: Color(0xFF2C2C2A),
+                              color:
+                                  Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? Colors.white
+                                      : const Color(0xFF2C2C2A),
                             ),
                           )
-                          : const Text(
+                          : Text(
                             "Generate Quiz",
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
-                              color: Color(0xFF2C2C2A),
+                              color:
+                                  Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? Colors.white
+                                      : const Color(0xFF2C2C2A),
                             ),
                           ),
 
@@ -538,12 +554,16 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       isFlashcardLoading
-                          ? const LoadingDots(
+                          ? LoadingDots(
                             text: "Generating Flashcards",
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
-                              color: Color(0xFF2C2C2A),
+                              color:
+                                  Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? Colors.white
+                                      : const Color(0xFF2C2C2A),
                             ),
                           )
                           : isFlashcardReady
@@ -563,12 +583,16 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
                               ),
                             ],
                           )
-                          : const Text(
+                          : Text(
                             "Generate Flashcards",
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
-                              color: Color(0xFF2C2C2A),
+                              color:
+                                  Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? Colors.white
+                                      : const Color(0xFF2C2C2A),
                             ),
                           ),
 
@@ -626,12 +650,15 @@ class _StudyMaterialScreenState extends ConsumerState<StudyMaterialScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text(
+              child: Text(
                 "Ask AI",
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
-                  color: Color(0xFF2C2C2A),
+                  color:
+                      Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white
+                          : const Color(0xFF2C2C2A),
                 ),
               ),
             ),

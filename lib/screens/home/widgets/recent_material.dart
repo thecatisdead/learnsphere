@@ -19,8 +19,14 @@ class RecentMaterialSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("🔥 Recent Material"),
-        const SizedBox(height: 10),
+        const SizedBox(height: 14),
+        const Padding(
+          padding: EdgeInsets.only(
+            left: 14.0,
+          ), // Adjust this value to shift it more or less
+          child: Text("Recent Material"),
+        ),
+        const SizedBox(height: 14),
 
         ...recentMaterials.map(
           (material) => GestureDetector(
@@ -30,9 +36,7 @@ class RecentMaterialSection extends StatelessWidget {
                 builder: (context) {
                   return AlertDialog(
                     title: const Text("Delete PDF?"),
-                    content: Text(
-                      'Delete "${material.fileName}"?',
-                    ),
+                    content: Text('Delete "${material.fileName}"?'),
                     actions: [
                       TextButton(
                         onPressed: () {
