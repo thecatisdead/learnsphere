@@ -20,6 +20,12 @@ class DocumentRepository {
 
   DocumentRepository(this.db);
 
+
+
+  Future<List<Document>> getAllDocuments() async {
+  return await db.select(db.documents).get();
+}
+
   // ============================================================
   // SUMMARY
   // ============================================================

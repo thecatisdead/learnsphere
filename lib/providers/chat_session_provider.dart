@@ -98,7 +98,7 @@ class ChatSessionsNotifier extends Notifier<ChatSessionsState> {
   // --------------------------------------------------
 
   Future<void> loadChat(String chatId) async {
-    print("🔍 LOADING CHAT: $chatId");
+    print("LOADING CHAT: $chatId");
 
     final repository = ChatRepository(ref.read(databaseProvider));
 
@@ -108,7 +108,7 @@ class ChatSessionsNotifier extends Notifier<ChatSessionsState> {
         sessions.where((session) => session.id == chatId).toList();
 
     if (matchingSessions.isEmpty) {
-      print("❌ CHAT NOT FOUND: $chatId");
+      print("CHAT NOT FOUND: $chatId");
       return;
     }
 
