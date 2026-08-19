@@ -2190,6 +2190,261 @@ class FlashcardsCompanion extends UpdateCompanion<Flashcard> {
   }
 }
 
+class $PlannerTasksTable extends PlannerTasks
+    with TableInfo<$PlannerTasksTable, PlannerTask> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PlannerTasksTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _documentIdMeta = const VerificationMeta(
+    'documentId',
+  );
+  @override
+  late final GeneratedColumn<String> documentId = GeneratedColumn<String>(
+    'document_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _studyDateMeta = const VerificationMeta(
+    'studyDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> studyDate = GeneratedColumn<DateTime>(
+    'study_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, documentId, studyDate];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'planner_tasks';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PlannerTask> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('document_id')) {
+      context.handle(
+        _documentIdMeta,
+        documentId.isAcceptableOrUnknown(data['document_id']!, _documentIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_documentIdMeta);
+    }
+    if (data.containsKey('study_date')) {
+      context.handle(
+        _studyDateMeta,
+        studyDate.isAcceptableOrUnknown(data['study_date']!, _studyDateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_studyDateMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PlannerTask map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PlannerTask(
+      id:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}id'],
+          )!,
+      documentId:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}document_id'],
+          )!,
+      studyDate:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}study_date'],
+          )!,
+    );
+  }
+
+  @override
+  $PlannerTasksTable createAlias(String alias) {
+    return $PlannerTasksTable(attachedDatabase, alias);
+  }
+}
+
+class PlannerTask extends DataClass implements Insertable<PlannerTask> {
+  final int id;
+  final String documentId;
+  final DateTime studyDate;
+  const PlannerTask({
+    required this.id,
+    required this.documentId,
+    required this.studyDate,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['document_id'] = Variable<String>(documentId);
+    map['study_date'] = Variable<DateTime>(studyDate);
+    return map;
+  }
+
+  PlannerTasksCompanion toCompanion(bool nullToAbsent) {
+    return PlannerTasksCompanion(
+      id: Value(id),
+      documentId: Value(documentId),
+      studyDate: Value(studyDate),
+    );
+  }
+
+  factory PlannerTask.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PlannerTask(
+      id: serializer.fromJson<int>(json['id']),
+      documentId: serializer.fromJson<String>(json['documentId']),
+      studyDate: serializer.fromJson<DateTime>(json['studyDate']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'documentId': serializer.toJson<String>(documentId),
+      'studyDate': serializer.toJson<DateTime>(studyDate),
+    };
+  }
+
+  PlannerTask copyWith({int? id, String? documentId, DateTime? studyDate}) =>
+      PlannerTask(
+        id: id ?? this.id,
+        documentId: documentId ?? this.documentId,
+        studyDate: studyDate ?? this.studyDate,
+      );
+  PlannerTask copyWithCompanion(PlannerTasksCompanion data) {
+    return PlannerTask(
+      id: data.id.present ? data.id.value : this.id,
+      documentId:
+          data.documentId.present ? data.documentId.value : this.documentId,
+      studyDate: data.studyDate.present ? data.studyDate.value : this.studyDate,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PlannerTask(')
+          ..write('id: $id, ')
+          ..write('documentId: $documentId, ')
+          ..write('studyDate: $studyDate')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, documentId, studyDate);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PlannerTask &&
+          other.id == this.id &&
+          other.documentId == this.documentId &&
+          other.studyDate == this.studyDate);
+}
+
+class PlannerTasksCompanion extends UpdateCompanion<PlannerTask> {
+  final Value<int> id;
+  final Value<String> documentId;
+  final Value<DateTime> studyDate;
+  const PlannerTasksCompanion({
+    this.id = const Value.absent(),
+    this.documentId = const Value.absent(),
+    this.studyDate = const Value.absent(),
+  });
+  PlannerTasksCompanion.insert({
+    this.id = const Value.absent(),
+    required String documentId,
+    required DateTime studyDate,
+  }) : documentId = Value(documentId),
+       studyDate = Value(studyDate);
+  static Insertable<PlannerTask> custom({
+    Expression<int>? id,
+    Expression<String>? documentId,
+    Expression<DateTime>? studyDate,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (documentId != null) 'document_id': documentId,
+      if (studyDate != null) 'study_date': studyDate,
+    });
+  }
+
+  PlannerTasksCompanion copyWith({
+    Value<int>? id,
+    Value<String>? documentId,
+    Value<DateTime>? studyDate,
+  }) {
+    return PlannerTasksCompanion(
+      id: id ?? this.id,
+      documentId: documentId ?? this.documentId,
+      studyDate: studyDate ?? this.studyDate,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (documentId.present) {
+      map['document_id'] = Variable<String>(documentId.value);
+    }
+    if (studyDate.present) {
+      map['study_date'] = Variable<DateTime>(studyDate.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PlannerTasksCompanion(')
+          ..write('id: $id, ')
+          ..write('documentId: $documentId, ')
+          ..write('studyDate: $studyDate')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2199,6 +2454,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $SummariesTable summaries = $SummariesTable(this);
   late final $QuizzesTable quizzes = $QuizzesTable(this);
   late final $FlashcardsTable flashcards = $FlashcardsTable(this);
+  late final $PlannerTasksTable plannerTasks = $PlannerTasksTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2210,6 +2466,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     summaries,
     quizzes,
     flashcards,
+    plannerTasks,
   ];
 }
 
@@ -3433,6 +3690,172 @@ typedef $$FlashcardsTableProcessedTableManager =
       Flashcard,
       PrefetchHooks Function()
     >;
+typedef $$PlannerTasksTableCreateCompanionBuilder =
+    PlannerTasksCompanion Function({
+      Value<int> id,
+      required String documentId,
+      required DateTime studyDate,
+    });
+typedef $$PlannerTasksTableUpdateCompanionBuilder =
+    PlannerTasksCompanion Function({
+      Value<int> id,
+      Value<String> documentId,
+      Value<DateTime> studyDate,
+    });
+
+class $$PlannerTasksTableFilterComposer
+    extends Composer<_$AppDatabase, $PlannerTasksTable> {
+  $$PlannerTasksTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get documentId => $composableBuilder(
+    column: $table.documentId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get studyDate => $composableBuilder(
+    column: $table.studyDate,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$PlannerTasksTableOrderingComposer
+    extends Composer<_$AppDatabase, $PlannerTasksTable> {
+  $$PlannerTasksTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get documentId => $composableBuilder(
+    column: $table.documentId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get studyDate => $composableBuilder(
+    column: $table.studyDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PlannerTasksTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PlannerTasksTable> {
+  $$PlannerTasksTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get documentId => $composableBuilder(
+    column: $table.documentId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get studyDate =>
+      $composableBuilder(column: $table.studyDate, builder: (column) => column);
+}
+
+class $$PlannerTasksTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PlannerTasksTable,
+          PlannerTask,
+          $$PlannerTasksTableFilterComposer,
+          $$PlannerTasksTableOrderingComposer,
+          $$PlannerTasksTableAnnotationComposer,
+          $$PlannerTasksTableCreateCompanionBuilder,
+          $$PlannerTasksTableUpdateCompanionBuilder,
+          (
+            PlannerTask,
+            BaseReferences<_$AppDatabase, $PlannerTasksTable, PlannerTask>,
+          ),
+          PlannerTask,
+          PrefetchHooks Function()
+        > {
+  $$PlannerTasksTableTableManager(_$AppDatabase db, $PlannerTasksTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer:
+              () => $$PlannerTasksTableFilterComposer($db: db, $table: table),
+          createOrderingComposer:
+              () => $$PlannerTasksTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer:
+              () =>
+                  $$PlannerTasksTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> documentId = const Value.absent(),
+                Value<DateTime> studyDate = const Value.absent(),
+              }) => PlannerTasksCompanion(
+                id: id,
+                documentId: documentId,
+                studyDate: studyDate,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String documentId,
+                required DateTime studyDate,
+              }) => PlannerTasksCompanion.insert(
+                id: id,
+                documentId: documentId,
+                studyDate: studyDate,
+              ),
+          withReferenceMapper:
+              (p0) =>
+                  p0
+                      .map(
+                        (e) => (
+                          e.readTable(table),
+                          BaseReferences(db, table, e),
+                        ),
+                      )
+                      .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$PlannerTasksTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PlannerTasksTable,
+      PlannerTask,
+      $$PlannerTasksTableFilterComposer,
+      $$PlannerTasksTableOrderingComposer,
+      $$PlannerTasksTableAnnotationComposer,
+      $$PlannerTasksTableCreateCompanionBuilder,
+      $$PlannerTasksTableUpdateCompanionBuilder,
+      (
+        PlannerTask,
+        BaseReferences<_$AppDatabase, $PlannerTasksTable, PlannerTask>,
+      ),
+      PlannerTask,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -3449,4 +3872,6 @@ class $AppDatabaseManager {
       $$QuizzesTableTableManager(_db, _db.quizzes);
   $$FlashcardsTableTableManager get flashcards =>
       $$FlashcardsTableTableManager(_db, _db.flashcards);
+  $$PlannerTasksTableTableManager get plannerTasks =>
+      $$PlannerTasksTableTableManager(_db, _db.plannerTasks);
 }

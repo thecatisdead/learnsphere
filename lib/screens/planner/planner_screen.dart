@@ -7,6 +7,7 @@ import '../../database/app_database.dart';
 
 import '../../models/study_session.dart';
 import '../../providers/study_session_provider.dart';
+import '../../providers/planner_provider.dart';
 
 import '../study_material/study_material_screen.dart';
 
@@ -18,9 +19,9 @@ class PlannerScreen extends ConsumerStatefulWidget {
 }
 
 class _PlannerScreenState extends ConsumerState<PlannerScreen> {
-  DateTime selectedDate = DateTime.now();
-
-  List<Document> selectedDocuments = [];
+  // ============================================================
+  // ADD TASK
+  // ============================================================
 
   Future<void> _openAddTaskModal() async {
     final repository = DocumentRepository(ref.read(databaseProvider));
@@ -35,10 +36,12 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
           content: Text("Upload a PDF first before adding it to your planner."),
         ),
       );
+
       return;
     }
 
     Document? selectedDocument;
+    DateTime selectedDate = DateTime.now();
 
     await showModalBottomSheet(
       context: context,
@@ -67,7 +70,9 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
 
                       const SizedBox(height: 20),
 
+                      // ==================================================
                       // PDF SELECTOR
+                      // ==================================================
                       DropdownButtonFormField<Document>(
                         isExpanded: true,
                         value: selectedDocument,
@@ -95,13 +100,17 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
 
                       const SizedBox(height: 16),
 
-                      // DATE SELECTOR
+                      // ==================================================
+                      // DATE
+                      // ==================================================
                       ListTile(
                         contentPadding: EdgeInsets.zero,
                         leading: const Icon(Icons.calendar_today_outlined),
                         title: const Text("Study Date"),
                         subtitle: Text(
-                          "${selectedDate.day}/${selectedDate.month}/${selectedDate.year}",
+                          "${selectedDate.day}/"
+                          "${selectedDate.month}/"
+                          "${selectedDate.year}",
                         ),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () async {
@@ -122,26 +131,26 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
 
                       const SizedBox(height: 16),
 
+                      // ==================================================
+                      // ADD BUTTON
+                      // ==================================================
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed:
                               selectedDocument == null
                                   ? null
-                                  : () {
-                                    setState(() {
-                                      // Prevent duplicate PDFs.
-                                      if (!selectedDocuments.any(
-                                        (document) =>
-                                            document.id == selectedDocument!.id,
-                                      )) {
-                                        selectedDocuments.add(
-                                          selectedDocument!,
+                                  : () async {
+                                    await ref
+                                        .read(plannerProvider.notifier)
+                                        .addTask(
+                                          documentId: selectedDocument!.id,
+                                          studyDate: selectedDate,
                                         );
-                                      }
-                                    });
 
-                                    Navigator.pop(modalContext);
+                                    if (modalContext.mounted) {
+                                      Navigator.pop(modalContext);
+                                    }
                                   },
                           child: const Text("Add to Planner"),
                         ),
@@ -157,6 +166,10 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
     );
   }
 
+  // ============================================================
+  // OPEN STUDY MATERIAL
+  // ============================================================
+
   void _openStudyMaterial(Document document) {
     final session = StudySession(
       documentId: document.id,
@@ -164,7 +177,6 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
       filePath: document.filePath,
     );
 
-    // Make this PDF the currently selected study material.
     ref.read(studySessionProvider.notifier).setSession(session);
 
     Navigator.push(
@@ -173,8 +185,22 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
     );
   }
 
+  // ============================================================
+  // FORMAT DATE
+  // ============================================================
+
+  String _formatDate(DateTime date) {
+    return "${date.day}/${date.month}/${date.year}";
+  }
+
+  // ============================================================
+  // BUILD
+  // ============================================================
+
   @override
   Widget build(BuildContext context) {
+    final plannerState = ref.watch(plannerProvider);
+
     return Scaffold(
       appBar: AppBar(title: const Text("Study Planner")),
 
@@ -184,39 +210,79 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
         label: const Text("Add Task"),
       ),
 
-      body:
-          selectedDocuments.isEmpty
-              ? Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.calendar_month_outlined,
-                        size: 64,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
+      body: plannerState.when(
+        // ==========================================================
+        // LOADING
+        // ==========================================================
+        loading: () {
+          return const Center(child: CircularProgressIndicator());
+        },
 
-                      const SizedBox(height: 16),
+        // ==========================================================
+        // ERROR
+        // ==========================================================
+        error: (error, stack) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(
+                "Failed to load planner:\n$error",
+                textAlign: TextAlign.center,
+              ),
+            ),
+          );
+        },
 
-                      Text(
-                        "No upcoming study tasks",
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
+        // ==========================================================
+        // DATA
+        // ==========================================================
+        data: (tasks) {
+          if (tasks.isEmpty) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.calendar_month_outlined,
+                      size: 64,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
 
-                      const SizedBox(height: 8),
+                    const SizedBox(height: 16),
 
-                      Text(
-                        "Tap Add Task to add one of your uploaded PDFs.",
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                    ],
-                  ),
+                    Text(
+                      "No upcoming study tasks",
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    Text(
+                      "Tap Add Task to add one of your uploaded PDFs.",
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ],
                 ),
-              )
-              : ListView(
+              ),
+            );
+          }
+
+          return FutureBuilder<List<Document>>(
+            future:
+                DocumentRepository(
+                  ref.read(databaseProvider),
+                ).getAllDocuments(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              final documents = snapshot.data!;
+
+              return ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
                   Text(
@@ -228,7 +294,11 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
 
                   const SizedBox(height: 12),
 
-                  ...selectedDocuments.map((document) {
+                  ...tasks.map((task) {
+                    final document = documents.firstWhere(
+                      (document) => document.id == task.documentId,
+                    );
+
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 10),
                       child: Card(
@@ -245,7 +315,7 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                           ),
 
                           subtitle: Text(
-                            "Study on ${selectedDate.day}/${selectedDate.month}/${selectedDate.year}",
+                            "Study on ${_formatDate(task.studyDate)}",
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -260,7 +330,11 @@ class _PlannerScreenState extends ConsumerState<PlannerScreen> {
                     );
                   }),
                 ],
-              ),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }
